@@ -1,0 +1,42 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4-M1'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+group = 'net.im45.bot'
+version = '0.1.0'
+
+repositories {
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    maven { url 'https://mirrors.huaweicloud.com/repository/maven' }
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly 'net.mamoe:mirai-core:0.37.3'
+    compileOnly 'net.mamoe:mirai-console:0.4.9'
+    compileOnly 'com.google.code.gson:gson:2.8.6'
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '11'
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '11'
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+task deploy(dependsOn: [shadowJar]) {
+    group('build')
+
+    copy {
+        copySpec ->
+            from file('build/libs')
+            into '/Users/45gfg9/Downloads/mirai/plugins'
+    }
+}

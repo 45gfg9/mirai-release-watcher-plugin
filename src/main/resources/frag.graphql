@@ -1,0 +1,23 @@
+fragment latestRelease on Repository {
+    releases(last: 1) {
+        nodes {
+            name
+            url
+            tagName
+            createdAt
+            publishedAt
+            author {
+                name
+                login
+            }
+            releaseAssets(first: 100) {
+                totalCount
+                nodes {
+                    name
+                    size
+                    downloadUrl
+                }
+            }
+        }
+    }
+}
