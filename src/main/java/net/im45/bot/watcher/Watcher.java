@@ -9,6 +9,7 @@ import net.mamoe.mirai.console.plugins.PluginBase;
 import net.mamoe.mirai.console.scheduler.PluginScheduler;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.GroupMessage;
+import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -23,17 +24,17 @@ import java.util.function.Consumer;
  * <p>
  * Currently WIP, not functional.
  * <p>
- * This plugin uses <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a>  to fetch data.
+ * This plugin uses <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a> to fetch data.
  * <p>
  * To use this plugin you need to generate a Personal Access Token on GitHub Developer settings page.
  * <p>
  * Only minimal permission is required (that is, PUBLIC_ACCESS)
  */
 
-//@SuppressWarnings("unused")
 public class Watcher extends PluginBase {
 
-    private final static Request request = new Request();
+    private static final Request request = new Request();
+    private final MiraiLogger logger = getLogger();
 
     // Interval between checks
     private int intervalMs;
@@ -51,8 +52,8 @@ public class Watcher extends PluginBase {
     public void onLoad() {
         super.onLoad();
 
-        request.setErr(getLogger()::error);
-        request.setDebug(getLogger()::debug);
+        request.setErr(logger::error);
+        request.setDebug(logger::debug);
 
         settings = loadConfig("settings.yml");
         settings.setIfAbsent("token", "Not set");
@@ -177,7 +178,7 @@ public class Watcher extends PluginBase {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
-        handleStatus(s, getLogger()::info, getLogger()::error);
+        handleStatus(s, logger::info, logger::error);
         if (request.hasVerifiedToken() && settings.getBoolean("autostart")) {
             repeatTask = getScheduler().repeat(request, intervalMs);
         }

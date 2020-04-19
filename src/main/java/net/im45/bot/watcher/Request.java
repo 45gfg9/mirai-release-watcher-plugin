@@ -142,6 +142,7 @@ public class Request implements Runnable {
         watch.values()
                 .stream()
                 .flatMap(p -> p.second.stream())
+                .distinct()
                 .mapToLong(Long::longValue)
                 .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
     }

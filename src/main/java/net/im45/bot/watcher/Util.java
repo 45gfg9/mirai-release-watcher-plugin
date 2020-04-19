@@ -29,7 +29,7 @@ public class Util {
         throw new UnsupportedOperationException();
     }
 
-    private static final char[] SUFFIXES = { 'K', 'M', 'G', 'T', 'P' };
+    private static final char[] SUFFIXES = { 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D' };
 
     public static Map<RepoId, Pair<Release, Set<Long>>> filterNew(
             Map<RepoId, Pair<String, Set<Long>>> ver, Map<RepoId, JsonObject> repos) {
@@ -48,6 +48,9 @@ public class Util {
     }
 
     public static String byteScale(long bytes) {
+        if (bytes < 0) {
+            throw new IllegalArgumentException("Negative bytes");
+        }
         int scale = (int) (Math.log10(bytes) / 3);
         if (scale > 0) return String.format("%.2f", bytes / Math.pow(1e3, scale)) + SUFFIXES[scale - 1] + "B";
         return bytes + "B";
