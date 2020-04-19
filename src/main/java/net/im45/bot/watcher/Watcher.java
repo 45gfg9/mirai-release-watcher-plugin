@@ -7,6 +7,7 @@ import net.mamoe.mirai.console.command.JCommandManager;
 import net.mamoe.mirai.console.plugins.Config;
 import net.mamoe.mirai.console.plugins.PluginBase;
 import net.mamoe.mirai.console.scheduler.PluginScheduler;
+import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.GroupMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,12 +19,13 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 /**
- * This plugin uses
- * <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a>
- * to fetch data.
+ * Yet another <a href="https://github.com/mamoe/mirai-console">mirai-console</a> plugin.
  * <p>
- * To use this plugin you need to generate a Personal Access Token
- * on GitHub Developer settings page.
+ * Currently WIP, not functional.
+ * <p>
+ * This plugin uses <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a>  to fetch data.
+ * <p>
+ * To use this plugin you need to generate a Personal Access Token on GitHub Developer settings page.
  * <p>
  * Only minimal permission is required (that is, PUBLIC_ACCESS)
  */
@@ -81,8 +83,6 @@ public class Watcher extends PluginBase {
                 Iterator<String> it = args.iterator();
                 if (!it.hasNext()) return false;
                 String sub = it.next();
-
-                request.add("ppy/osu", 0L, s->{});
 
                 if ("start".equals(sub)) {
                     if (request.hasUnverifiedToken()) {
@@ -147,6 +147,7 @@ public class Watcher extends PluginBase {
 
         getEventListener().subscribeAlways(GroupMessage.class, e -> {
             if (e.getGroup().getId() == 617745343L) return;
+            Group subject = e.getSubject();
             List<String> msg = Arrays.asList(e.getMessage().toString().replaceFirst("\\[mirai:source:\\d+]", "")
                     .split(" "));
             msg.removeIf(String::isBlank);
@@ -157,7 +158,15 @@ public class Watcher extends PluginBase {
 
             if ("/watch-release".equals(cmd)) {
                 for (String arg : args) {
-                    // TODO
+                    if (!request.add(arg, subject.getId(), subject::sendMessage)) {
+                        // TODO
+                    }
+                }
+            } else if ("/unwatch-release".equals(cmd)) {
+                for (String arg : args) {
+                    if (!request.remove(arg, subject.getId())) {
+                        // TODO
+                    }
                 }
             }
         });

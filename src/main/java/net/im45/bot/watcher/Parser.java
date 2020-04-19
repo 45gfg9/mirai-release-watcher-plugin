@@ -33,7 +33,7 @@ public final class Parser {
     public static Map<RepoId, JsonObject> getRepositories(JsonElement jsonElement, Collection<RepoId> repos) {
         Map<RepoId, JsonObject> map = new HashMap<>();
         JsonObject data = jsonElement.getAsJsonObject().getAsJsonObject("data");
-        repos.forEach(s -> map.put(s, data.getAsJsonObject(s.first + "__sep__" + s.second)));
+        repos.forEach(s -> map.put(s, data.getAsJsonObject(s.owner + "__sep__" + s.name)));
         return map;
     }
 

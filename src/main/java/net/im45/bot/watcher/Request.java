@@ -39,7 +39,6 @@ public class Request implements Runnable {
     static {
         try {
             ENDPOINT = new URL("https://api.github.com/graphql");
-//            FRAGMENT_FILE_PATH = Paths.get(Watcher.class.getResource("/frag.graphql").toURI());
             FRAGMENT_FILE_PATH = Util.getResource(Watcher.class, "/frag.graphql");
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
@@ -48,7 +47,7 @@ public class Request implements Runnable {
 
     public Request() {
         // Avoid NullPointerException
-        this.err = s -> {};
+        this.err = this.debug = s -> {};
     }
 
     private static String getFragment() {
@@ -62,16 +61,15 @@ public class Request implements Runnable {
         return sb.toString().strip();
     }
 
-    private static String buildQueryString(String... repos) {
-        if (repos.length == 0) throw new IllegalArgumentException();
+    private static String buildQueryString(Set<RepoId> repos) {
+        if (repos.size() == 0) throw new IllegalArgumentException();
 
         String fmt = "%s: repository(owner: \"%s\", name: \"%s\") { ...latestRelease } ";
         StringBuilder sb = new StringBuilder();
 
         sb.append("query {");
-        for (String repo : repos) {
-            String[] info = repo.split("_");
-            sb.append(String.format(fmt, repo, info[0], info[1]));
+        for (RepoId repo : repos) {
+            sb.append(String.format(fmt, repo.owner, repo.name));
         }
         sb.append("} ").append(getFragment());
 
@@ -87,13 +85,7 @@ public class Request implements Runnable {
     }
 
     private static void writeOut(OutputStream out, Set<RepoId> repos) throws IOException {
-        String[] strings = new String[repos.size()];
-        int i = 0;
-        for (RepoId repo : repos) {
-            strings[i++] = repo.toString();
-        }
-
-        String queryString = buildQueryString(strings);
+        String queryString = buildQueryString(repos);
 
         out.write(queryString.getBytes(StandardCharsets.UTF_8));
     }
@@ -150,7 +142,6 @@ public class Request implements Runnable {
         watch.values()
                 .stream()
                 .flatMap(p -> p.second.stream())
-                .distinct()
                 .mapToLong(Long::longValue)
                 .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
     }
@@ -160,7 +151,7 @@ public class Request implements Runnable {
         try {
             repoId = Util.parseRepo(repo);
         } catch (IllegalArgumentException e) {
-            // TODO
+            notify.accept("Fuck you, what is " + repo + "?");
             return false;
         }
         return add(repoId, groupId, notify);
@@ -171,7 +162,7 @@ public class Request implements Runnable {
         if (watch.containsKey(repo)) {
             pair = watch.get(repo);
         } else {
-            pair = Pair.of("?", new HashSet<>());
+            pair = Pair.of("_", new HashSet<>());
             watch.put(repo, pair);
         }
 
@@ -203,13 +194,12 @@ public class Request implements Runnable {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     public void load(Config config) {
-        config.asMap().forEach((s, o) -> {
+        config.asMap().keySet().forEach((s) -> {
             String[] split = s.split("__ver__");
             String[] info = split[0].split("/");
             RepoId n = RepoId.of(info);
-            List<Long> longList = (List<Long>) o;
+            List<Long> longList = config.getLongList(s);
             watch.put(n, Pair.of(split[1], new HashSet<>(longList)));
         });
     }
@@ -246,12 +236,13 @@ public class Request implements Runnable {
         if (Parser.hasErrors(jsonElement)) {
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
-            jsonArray.forEach(e -> err.accept(e.getAsJsonObject().get("message").getAsString()));
+//            jsonArray.forEach(e -> err.accept(e.getAsJsonObject().get("message").getAsString()));
+            debug.accept(jsonArray.toString());
             return;
         }
         if (!Parser.hasData(jsonElement)) {
             err.accept("Error! Received data doesn't have a \"data\" object?!");
-            err.accept(String.valueOf(jsonElement));
+            debug.accept(String.valueOf(jsonElement));
             return;
         }
         Map<RepoId, JsonObject> repos = Parser.getRepositories(jsonElement, watch.keySet());

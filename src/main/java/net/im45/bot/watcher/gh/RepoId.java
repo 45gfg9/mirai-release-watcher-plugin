@@ -1,6 +1,6 @@
 package net.im45.bot.watcher.gh;
 
-public class RepoId {
+public final class RepoId {
     public final String owner;
     public final String name;
 
