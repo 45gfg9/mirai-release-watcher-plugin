@@ -1,4 +1,4 @@
-package net.im45.bot.watcher;
+package net.im45.bot.watcher.util;
 
 import java.util.Objects;
 

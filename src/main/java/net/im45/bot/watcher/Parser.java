@@ -3,7 +3,6 @@ package net.im45.bot.watcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.im45.bot.watcher.gh.Asset;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
 
@@ -64,7 +63,7 @@ public final class Parser {
         assets.forEach(e -> {
             JsonObject assetObj = e.getAsJsonObject();
 
-            Asset asset = new Asset();
+            Release.Asset asset = new Release.Asset();
             asset.name = assetObj.get("name").getAsString();
             asset.size = assetObj.get("size").getAsLong();
             asset.downloadUrl = assetObj.get("downloadUrl").getAsString();

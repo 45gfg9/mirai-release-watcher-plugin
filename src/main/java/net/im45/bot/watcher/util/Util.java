@@ -1,6 +1,7 @@
-package net.im45.bot.watcher;
+package net.im45.bot.watcher.util;
 
 import com.google.gson.JsonObject;
+import net.im45.bot.watcher.Parser;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
 

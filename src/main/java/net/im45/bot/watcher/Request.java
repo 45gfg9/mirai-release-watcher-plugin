@@ -4,9 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.im45.bot.watcher.gh.Asset;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
+import net.im45.bot.watcher.util.Pair;
+import net.im45.bot.watcher.constants.Status;
+import net.im45.bot.watcher.util.Util;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.plugins.Config;
 
@@ -69,7 +71,7 @@ public class Request implements Runnable {
 
         sb.append("query {");
         for (RepoId repo : repos) {
-            sb.append(String.format(fmt, repo.owner, repo.name));
+            sb.append(String.format(fmt, repo.toString().replace("/", "__sep__"), repo.owner, repo.name));
         }
         sb.append("} ").append(getFragment());
 
@@ -106,13 +108,13 @@ public class Request implements Runnable {
         return tokenBuf != null;
     }
 
-    public String getToken() {
-        return token;
-    }
-
     public String checkAgain() {
         if (hasUnverifiedToken()) return setToken(tokenBuf);
         return hasVerifiedToken() ? Status.OK : Status.INVALID_TOKEN;
+    }
+
+    public String getToken() {
+        return token;
     }
 
     public String setToken(String token) {
@@ -136,6 +138,10 @@ public class Request implements Runnable {
             this.token = token;
             return Status.OK;
         }
+    }
+
+    public Set<RepoId> getWatched() {
+        return watch.keySet();
     }
 
     public void setConsumers(Bot bot) {
@@ -262,7 +268,7 @@ public class Request implements Runnable {
             printWriter.println("Published At: " + r.publishedAt);
             printWriter.println("Author: " + r.authorLogin + "(" + r.authorName + ")");
             printWriter.println("This release has " + r.assets.size() + " assets.");
-            for (Asset a : r.assets) {
+            for (Release.Asset a : r.assets) {
                 printWriter.println("----------");
                 printWriter.println("File name: " + a.name);
                 printWriter.println("Size: " + Util.byteScale(a.size));

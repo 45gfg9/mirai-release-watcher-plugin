@@ -1,5 +1,7 @@
 package net.im45.bot.watcher;
 
+import net.im45.bot.watcher.constants.Status;
+import net.im45.bot.watcher.gh.RepoId;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.BlockingCommand;
 import net.mamoe.mirai.console.command.CommandSender;
@@ -12,6 +14,9 @@ import net.mamoe.mirai.message.GroupMessage;
 import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -92,6 +97,9 @@ public class Watcher extends PluginBase {
                     if (!request.hasVerifiedToken() && !request.hasUnverifiedToken()) {
                         sender.sendMessageBlocking("You don't have a valid Access Token. " +
                                 "Please set by /github set token <Token>");
+                    } else if (request.hasUnverifiedToken()) {
+                        sender.sendMessageBlocking("Token validation failed. " +
+                                "Please try again later.");
                     } else if (repeatTask == null) {
                         repeatTask = getScheduler().repeat(request, intervalMs);
                         sender.sendMessageBlocking("Started running.");
@@ -147,10 +155,11 @@ public class Watcher extends PluginBase {
         });
 
         getEventListener().subscribeAlways(GroupMessage.class, e -> {
-            if (e.getGroup().getId() == 617745343L) return;
             Group subject = e.getSubject();
-            List<String> msg = Arrays.asList(e.getMessage().toString().replaceFirst("\\[mirai:source:\\d+]", "")
-                    .split(" "));
+            List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
+                    .toString()
+                    .replaceFirst("\\[mirai:source:\\d+]", "")
+                    .split(" ")));
             msg.removeIf(String::isBlank);
             if (msg.size() == 0) return;
 
@@ -158,16 +167,29 @@ public class Watcher extends PluginBase {
             List<String> args = msg.subList(1, msg.size());
 
             if ("/watch-release".equals(cmd)) {
+                int adds = 0;
                 for (String arg : args) {
-                    if (!request.add(arg, subject.getId(), subject::sendMessage)) {
-                        // TODO
+                    if (request.add(arg, subject.getId(), subject::sendMessage)) {
+                        adds++;
                     }
                 }
+                String s = "Added " + adds + " " + (adds == 1 ? "repository" : "repositories") + ".";
+                subject.sendMessage(s);
             } else if ("/unwatch-release".equals(cmd)) {
+                int dels = 0;
                 for (String arg : args) {
-                    if (!request.remove(arg, subject.getId())) {
-                        // TODO
+                    if (request.remove(arg, subject.getId())) {
+                        dels++;
                     }
+                }
+                String s = "Removed " + dels + " " + (dels == 1 ? "repository" : "repositories") + ".";
+                subject.sendMessage(s);
+            } else if ("/watch-list".equals(cmd)) {
+                StringWriter stringWriter = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(stringWriter);
+                printWriter.println("Currently watching:");
+                for (RepoId repo : request.getWatched()) {
+                    printWriter.println(repo);
                 }
             }
         });

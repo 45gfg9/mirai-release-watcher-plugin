@@ -12,4 +12,11 @@ public class Release {
     public String authorName;
     public String authorLogin;
     public List<Asset> assets;
+
+    public static class Asset {
+        public String name;
+        public long size;
+        public String downloadUrl;
+    }
+
 }
