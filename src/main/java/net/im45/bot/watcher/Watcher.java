@@ -160,7 +160,7 @@ public class Watcher extends PluginBase {
             Group subject = e.getSubject();
             List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
                     .toString()
-                    .replaceFirst("\\[mirai:source:\\d+]", "")
+                    .replaceFirst("\\[mirai:source:.*?]", "")
                     .split(" ")));
             msg.removeIf(String::isBlank);
             if (msg.size() == 0) return;
