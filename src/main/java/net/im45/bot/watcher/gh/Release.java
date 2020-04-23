@@ -18,5 +18,4 @@ public class Release {
         public long size;
         public String downloadUrl;
     }
-
 }

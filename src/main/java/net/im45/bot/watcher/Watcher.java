@@ -16,10 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -79,10 +76,10 @@ public class Watcher extends PluginBase {
         super.onEnable();
 
         JCommandManager.getInstance().register(this, new BlockingCommand(
-                "github",
-                List.of("gh"),
+                "grw",
+                Collections.emptyList(),
                 "GitHub Release Watcher",
-                "/github <start|stop|set <token|interval|autostart|bot> <arg>>"
+                "/grw <start|stop|set <token|interval|autostart|bot> <arg>>"
         ) {
             @Override
             public boolean onCommandBlocking(@NotNull CommandSender sender, @NotNull List<String> args) {
@@ -148,6 +145,11 @@ public class Watcher extends PluginBase {
                         request.setConsumers(bot);
                         sender.sendMessageBlocking("Bot set.");
                     } else return false;
+                } else if ("dump".equals(sub)) {
+                    logger.debug("Interval: " + intervalMs);
+                    logger.debug("RepeatTask: " + repeatTask);
+
+                    request.dump();
                 } else return false;
 
                 return true;
@@ -173,24 +175,25 @@ public class Watcher extends PluginBase {
                         adds++;
                     }
                 }
-                String s = "Added " + adds + " " + (adds == 1 ? "repository" : "repositories") + ".";
+                String s = "Added " + adds + " repositor" + (adds == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/unwatch-release".equals(cmd)) {
-                int dels = 0;
+                int i = 0;
                 for (String arg : args) {
                     if (request.remove(arg, subject.getId())) {
-                        dels++;
+                        i++;
                     }
                 }
-                String s = "Removed " + dels + " " + (dels == 1 ? "repository" : "repositories") + ".";
+                String s = "Removed " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/watch-list".equals(cmd)) {
                 StringWriter stringWriter = new StringWriter();
                 PrintWriter printWriter = new PrintWriter(stringWriter);
-                printWriter.println("Currently watching:");
-                for (RepoId repo : request.getWatched()) {
+                printWriter.println("Group " + subject.getId() + " is currently watching:");
+                for (RepoId repo : request.getWatched(subject.getId())) {
                     printWriter.println(repo);
                 }
+                subject.sendMessage(stringWriter.toString().trim());
             }
         });
 
@@ -212,6 +215,7 @@ public class Watcher extends PluginBase {
 
         settings.set("token", request.hasVerifiedToken() ? request.getToken() : "Not set");
         settings.set("interval", intervalMs);
+        // TODO Add a `defaultBot` config
         settings.save();
 
         request.save(watchers);

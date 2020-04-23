@@ -5,9 +5,31 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Writer;
 import java.util.function.Consumer;
 
+/**
+ * A character stream that forwards its output to an underlying {@code Consumer<String>}.
+ * <p>
+ * Closing a {@code StringConsumerWriter} has no effect. The methods in this class
+ * can be called after the stream has been closed without generating an
+ * {@code IOException}.
+ * <p>
+ * This class can be used directly as a {@code Consumer<String>}.
+ *
+ * @see java.util.function.Consumer
+ *
+ * @author 45gfg9
+ */
 public class StringConsumerWriter extends Writer implements Consumer<String> {
-    Consumer<String> out;
 
+    /**
+     * The underlying {@code Consumer<String>}.
+     */
+    private final Consumer<String> out;
+
+    /**
+     * Constructs a {@code StringConsumerWriter}.
+     *
+     * @param out the Consumer.
+     */
     public StringConsumerWriter(Consumer<String> out) {
         this.out = out;
     }
@@ -21,7 +43,7 @@ public class StringConsumerWriter extends Writer implements Consumer<String> {
     }
 
     /**
-     * Writes a string.
+     * {@inheritDoc}
      *
      * @param str String to be written
      */
@@ -31,65 +53,45 @@ public class StringConsumerWriter extends Writer implements Consumer<String> {
     }
 
     /**
-     * Writes a portion of a string.
+     * {@inheritDoc}
      *
      * @param str A String
      * @param off Offset from which to start writing characters
      * @param len Number of characters to write
-     * @throws IndexOutOfBoundsException Implementations should throw this exception
-     *                                   if {@code off} is negative, or {@code len} is negative,
-     *                                   or {@code off + len} is negative or greater than the length
-     *                                   of the given string
-     * @implSpec The implementation in this class throws an
-     * {@code IndexOutOfBoundsException} for the indicated conditions;
-     * overriding methods may choose to do otherwise.
+     * @throws StringIndexOutOfBoundsException
+     *         If {@code off} is negative, or {@code len} is negative,
+     *         or {@code off + len} is negative or greater than the length
+     *         of the given string
      */
     @Override
     public void write(@NotNull String str, int off, int len) {
-        char[] chars = new char[len];
-        str.getChars(off, off + len, chars, 0);
-        write(chars, 0, len);
+        write(str.substring(off, off + len));
     }
 
     /**
-     * Writes an array of characters.
+     * {@inheritDoc}
      *
-     * @param cbuf Array of characters to be written
+     * @param buf Array of characters to be written
      */
     @Override
-    public void write(@NotNull char[] cbuf) {
-        write(cbuf, 0, cbuf.length);
+    public void write(@NotNull char[] buf) {
+        write(buf, 0, buf.length);
     }
 
     /**
-     * Write a portion of an array of characters.
+     * {@inheritDoc}
      *
-     * @param cbuf Array of characters
+     * @param buf Array of characters
      * @param off  Offset from which to start writing characters
      * @param len  Number of characters to write
-     * @throws IndexOutOfBoundsException If {@code off} is negative, or {@code len} is negative,
-     *                                   or {@code off + len} is negative or greater than the length
-     *                                   of the given array
+     * @throws StringIndexOutOfBoundsException
+     *         If {@code off} is negative, or {@code len} is negative,
+     *         or {@code off + len} is negative or greater than the length
+     *         of the given array
      */
     @Override
-    public void write(@NotNull char[] cbuf, int off, int len) {
-        // Copied from BufferedWriter
-        if ((off < 0) || (off > cbuf.length) || (len < 0) ||
-                ((off + len) > cbuf.length) || ((off + len) < 0)) {
-            throw new IndexOutOfBoundsException();
-        } else if (len == 0) {
-            return;
-        }
-
-        char[] chars;
-        if (off == 0 && len == cbuf.length) {
-            chars = cbuf;
-        } else {
-            chars = new char[len];
-            System.arraycopy(cbuf, off, chars, 0, len);
-        }
-
-        write(new String(chars));
+    public void write(@NotNull char[] buf, int off, int len) {
+        write(new String(buf, off, len));
     }
 
     /**

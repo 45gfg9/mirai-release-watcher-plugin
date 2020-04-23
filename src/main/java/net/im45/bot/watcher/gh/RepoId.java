@@ -15,14 +15,6 @@ public final class RepoId {
         return new RepoId(owner, name);
     }
 
-    public static RepoId of(String[] repo) {
-        if (repo.length != 2) {
-            throw new IllegalArgumentException();
-        }
-
-        return of(repo[0], repo[1]);
-    }
-
     public String toString() {
         return owner + "/" + name;
     }

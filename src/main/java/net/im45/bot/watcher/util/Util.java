@@ -11,7 +11,10 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +36,8 @@ public class Util {
     private static final char[] SUFFIXES = { 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D' };
 
     public static Map<RepoId, Pair<Release, Set<Long>>> filterNew(
-            Map<RepoId, Pair<String, Set<Long>>> ver, Map<RepoId, JsonObject> repos) {
+            Map<RepoId, Pair<String, Set<Long>>> ver,
+            Map<RepoId, JsonObject> repos) {
 
         Map<RepoId, Pair<Release, Set<Long>>> map = new HashMap<>();
 
@@ -53,14 +57,15 @@ public class Util {
             throw new IllegalArgumentException("Negative bytes");
         }
         int scale = (int) (Math.log10(bytes) / 3);
-        if (scale > 0) return String.format("%.2f", bytes / Math.pow(1e3, scale)) + SUFFIXES[scale - 1] + "B";
-        return bytes + "B";
+        if (scale == 0) return bytes + "B";
+        return String.format("%.2f", bytes / Math.pow(1e3, scale)) + SUFFIXES[scale - 1] + "B";
     }
 
     public static Path getResource(Class<?> clazz, String resource) throws URISyntaxException, IOException {
         Path path;
         URI uri = clazz.getResource(resource).toURI();
-        switch (uri.getScheme()) {
+        String scheme = uri.getScheme();
+        switch (scheme) {
             case "file":
                 path = Paths.get(uri);
                 break;
@@ -68,7 +73,7 @@ public class Util {
                 path = FileSystems.newFileSystem(uri, Collections.emptyMap()).getPath(resource);
                 break;
             default:
-                throw new UnsupportedOperationException();
+                throw new IllegalStateException("Unknown scheme: " + scheme);
         }
         return path;
     }
@@ -88,5 +93,11 @@ public class Util {
         name = matcher.group(2);
 
         return RepoId.of(owner, name);
+    }
+
+    public static String toLegalId(RepoId repoId) {
+        return repoId.toString()
+                .replaceAll("^\\d+", "")
+                .replaceAll("[-/]", "_");
     }
 }

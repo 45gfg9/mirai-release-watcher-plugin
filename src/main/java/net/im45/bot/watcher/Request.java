@@ -4,13 +4,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.im45.bot.watcher.constants.Status;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
+import net.im45.bot.watcher.io.StringConsumerWriter;
 import net.im45.bot.watcher.util.Pair;
-import net.im45.bot.watcher.constants.Status;
 import net.im45.bot.watcher.util.Util;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.plugins.Config;
+import net.mamoe.mirai.console.plugins.ConfigSection;
+import net.mamoe.mirai.console.plugins.ConfigSectionFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -22,6 +25,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 public class Request implements Runnable {
 
@@ -55,8 +59,9 @@ public class Request implements Runnable {
     private static String getFragment() {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = Files.newBufferedReader(FRAGMENT_FILE_PATH)) {
-            String s = reader.readLine();
-            sb.append(' ').append(s.strip());
+            String s;
+            while ((s = reader.readLine()) != null)
+                sb.append(' ').append(s.strip());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -66,12 +71,12 @@ public class Request implements Runnable {
     private static String buildQueryString(Set<RepoId> repos) {
         if (repos.size() == 0) throw new IllegalArgumentException();
 
-        String fmt = "%s: repository(owner: \"%s\", name: \"%s\") { ...latestRelease } ";
+        String fmt = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } ";
         StringBuilder sb = new StringBuilder();
 
         sb.append("query {");
         for (RepoId repo : repos) {
-            sb.append(String.format(fmt, repo.toString().replace("/", "__sep__"), repo.owner, repo.name));
+            sb.append(String.format(fmt, Util.toLegalId(repo), repo.owner, repo.name));
         }
         sb.append("} ").append(getFragment());
 
@@ -86,8 +91,8 @@ public class Request implements Runnable {
         return connection;
     }
 
-    private static void writeOut(OutputStream out, Set<RepoId> repos) throws IOException {
-        String queryString = buildQueryString(repos);
+    private void writeOut(OutputStream out) throws IOException {
+        String queryString = buildQueryString(watch.keySet());
 
         out.write(queryString.getBytes(StandardCharsets.UTF_8));
     }
@@ -140,8 +145,16 @@ public class Request implements Runnable {
         }
     }
 
-    public Set<RepoId> getWatched() {
-        return watch.keySet();
+    public Set<RepoId> getWatched(long groupId) {
+        Set<RepoId> set = new HashSet<>();
+
+        watch.forEach((r, p) -> {
+            if (p.second.contains(groupId)) {
+                set.add(r);
+            }
+        });
+
+        return set;
     }
 
     public void setConsumers(Bot bot) {
@@ -149,12 +162,23 @@ public class Request implements Runnable {
                 .stream()
                 .flatMap(p -> p.second.stream())
                 .distinct()
-                .mapToLong(Long::longValue)
+//                .mapToLong(Long::longValue) // I'm scared please help me
                 .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
+    }
+
+    private Set<Long> getAllGroupIds() {
+        return watch.values()
+                .stream()
+                .map(p -> p.second)
+                .reduce(new HashSet<>(), (a, b) -> {
+                    a.addAll(b);
+                    return a;
+                });
     }
 
     public boolean add(String repo, long groupId, Consumer<String> notify) {
         RepoId repoId;
+        // TODO Verify repository existence
         try {
             repoId = Util.parseRepo(repo);
         } catch (IllegalArgumentException e) {
@@ -169,7 +193,7 @@ public class Request implements Runnable {
         if (watch.containsKey(repo)) {
             pair = watch.get(repo);
         } else {
-            pair = Pair.of("_", new HashSet<>());
+            pair = Pair.of("?", new HashSet<>());
             watch.put(repo, pair);
         }
 
@@ -183,7 +207,6 @@ public class Request implements Runnable {
         try {
             repoId = Util.parseRepo(repo);
         } catch (IllegalArgumentException e) {
-            // TODO
             return false;
         }
         return remove(repoId, groupId);
@@ -192,29 +215,35 @@ public class Request implements Runnable {
     private boolean remove(RepoId repo, long groupId) {
         if (!watch.containsKey(repo)) return false;
 
-        Set<Long> list = watch.get(repo).second;
-        if (!list.contains(groupId)) return false;
-        list.remove(groupId);
-        groupOut.remove(groupId);
+        Set<Long> set = watch.get(repo).second;
+        if (!set.contains(groupId)) return false;
+        set.remove(groupId);
+        if (!getAllGroupIds().contains(groupId)) {
+            groupOut.remove(groupId);
+        }
 
-        if (list.size() == 0) watch.remove(repo);
+        if (set.size() == 0) watch.remove(repo);
         return true;
     }
 
     public void load(Config config) {
-        config.asMap().keySet().forEach((s) -> {
-            String[] split = s.split("__ver__");
-            String[] info = split[0].split("/");
-            RepoId n = RepoId.of(info);
-            List<Long> longList = config.getLongList(s);
-            watch.put(n, Pair.of(split[1], new HashSet<>(longList)));
+        config.asMap().keySet().forEach(s -> {
+            ConfigSection c = config.getConfigSection(s);
+            String[] id = s.split("/");
+            String version = c.getString("version");
+            List<Long> longs = c.getLongList("watcher");
+            RepoId repoId = RepoId.of(id[0], id[1]);
+            watch.put(repoId, Pair.of(version, new HashSet<>(longs)));
         });
+        getAllGroupIds().forEach(l -> groupOut.put(l, s -> {}));
     }
 
     public void save(Config config) {
         watch.forEach((s, p) -> {
-            String n = s + "__ver__" + p.first;
-            config.set(n, new ArrayList<>(p.second));
+            ConfigSection section = ConfigSectionFactory.create();
+            section.set("version", p.first);
+            section.set("watcher", new ArrayList<>(p.second));
+            config.set(s.toString(), section);
         });
         config.save();
     }
@@ -229,12 +258,12 @@ public class Request implements Runnable {
             connection.setDoOutput(true);
 
             OutputStream out = connection.getOutputStream();
-            writeOut(out, watch.keySet());
-            out.close();
+            writeOut(out);
 
             InputStream in = connection.getInputStream();
-            jsonElement = JsonParser.parseReader(new InputStreamReader(in));
+            jsonElement = JsonParser.parseReader(new InputStreamReader(new GZIPInputStream(in)));
             in.close();
+            connection.disconnect();
         } catch (IOException e) {
             err.accept(e.getMessage());
             return;
@@ -243,7 +272,6 @@ public class Request implements Runnable {
         if (Parser.hasErrors(jsonElement)) {
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
-//            jsonArray.forEach(e -> err.accept(e.getAsJsonObject().get("message").getAsString()));
             debug.accept(jsonArray.toString());
             return;
         }
@@ -266,18 +294,39 @@ public class Request implements Runnable {
             printWriter.println("Tag Name: " + r.tagName);
             printWriter.println("Created At: " + r.createdAt);
             printWriter.println("Published At: " + r.publishedAt);
-            printWriter.println("Author: " + r.authorLogin + "(" + r.authorName + ")");
-            printWriter.println("This release has " + r.assets.size() + " assets.");
+            printWriter.println("Author: " + r.authorLogin + " (" + r.authorName + ")");
+            printWriter.println("This release has " + r.assets.size() + " asset(s).");
             for (Release.Asset a : r.assets) {
-                printWriter.println("----------");
+                printWriter.println("--------------------");
                 printWriter.println("File name: " + a.name);
                 printWriter.println("Size: " + Util.byteScale(a.size));
                 printWriter.println("Download URL: " + a.downloadUrl);
             }
 
             for (long l : p.second) {
-                groupOut.get(l).accept(stringWriter.toString());
+                groupOut.get(l).accept(stringWriter.toString().trim());
             }
         });
+    }
+
+    public void dump() {
+        PrintWriter out = new PrintWriter(new StringConsumerWriter(debug));
+
+        out.print("watch:");
+        watch.forEach((r, p) -> {
+            out.print(r);
+            out.print(p.first);
+            p.second.forEach(out::print);
+        });
+
+        out.print("");
+        out.print("groupOut:");
+        groupOut.forEach((l, c) -> {
+            out.print(l);
+            out.print(c);
+        });
+
+        out.print("token: " + token);
+        out.print("tokenBuf: " + tokenBuf);
     }
 }

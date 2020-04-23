@@ -16,8 +16,8 @@ repositories {
 
 dependencies {
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    compileOnly 'net.mamoe:mirai-core:0.37.3'
-    compileOnly 'net.mamoe:mirai-console:0.4.9'
+    compileOnly 'net.mamoe:mirai-core:0.38.0'
+    compileOnly 'net.mamoe:mirai-console:0.4.10'
     compileOnly 'com.google.code.gson:gson:2.8.6'
 }
 

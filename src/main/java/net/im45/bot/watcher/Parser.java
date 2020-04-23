@@ -5,10 +5,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
+import net.im45.bot.watcher.util.Util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Parser {
     private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
@@ -32,7 +36,7 @@ public final class Parser {
     public static Map<RepoId, JsonObject> getRepositories(JsonElement jsonElement, Collection<RepoId> repos) {
         Map<RepoId, JsonObject> map = new HashMap<>();
         JsonObject data = jsonElement.getAsJsonObject().getAsJsonObject("data");
-        repos.forEach(s -> map.put(s, data.getAsJsonObject(s.owner + "__sep__" + s.name)));
+        repos.forEach(s -> map.put(s, data.getAsJsonObject(Util.toLegalId(s))));
         return map;
     }
 
