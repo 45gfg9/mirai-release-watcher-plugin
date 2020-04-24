@@ -1,6 +1,6 @@
 package net.im45.bot.watcher;
 
-import net.im45.bot.watcher.constants.Status;
+import net.im45.bot.watcher.constant.Status;
 import net.im45.bot.watcher.gh.RepoId;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.BlockingCommand;

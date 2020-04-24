@@ -1,9 +1,9 @@
-package net.im45.bot.watcher.util;
+package net.im45.bot.watcher;
 
 import com.google.gson.JsonObject;
-import net.im45.bot.watcher.Parser;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
+import net.im45.bot.watcher.util.Pair;
 
 import java.io.IOException;
 import java.net.URI;
@@ -11,10 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,7 +22,7 @@ public class Util {
 
     static {
         ID = Pattern.compile("^([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)$");
-        SSH = Pattern.compile("^git@github\\.com/([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)\\.git$");
+        SSH = Pattern.compile("^git@github\\.com:([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)\\.git$");
         HTTPS = Pattern.compile("^https://github\\.com/([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)(?:\\.git)?$");
     }
 
@@ -41,11 +38,17 @@ public class Util {
 
         Map<RepoId, Pair<Release, Set<Long>>> map = new HashMap<>();
 
-        ver.forEach((n, v) -> {
-            Release release = Parser.parseRelease(repos.get(n));
-            if (!release.tagName.equals(v.first)) {
-                ver.put(n, Pair.of(release.tagName, v.second));
-                map.put(n, Pair.of(release, v.second));
+        ver.forEach((r, p) -> {
+            Optional<Release> optRelease = Parser.parseRelease(repos.get(r));
+            if (optRelease.isEmpty()) {
+                ver.put(r, Pair.of("-", p.second));
+                return;
+            }
+
+            Release release = optRelease.get();
+            if (!release.tagName.equals(p.first)) {
+                ver.put(r, Pair.of(release.tagName, p.second));
+                map.put(r, Pair.of(release, p.second));
             }
         });
 
@@ -62,20 +65,16 @@ public class Util {
     }
 
     public static Path getResource(Class<?> clazz, String resource) throws URISyntaxException, IOException {
-        Path path;
         URI uri = clazz.getResource(resource).toURI();
         String scheme = uri.getScheme();
         switch (scheme) {
             case "file":
-                path = Paths.get(uri);
-                break;
+                return Paths.get(uri);
             case "jar":
-                path = FileSystems.newFileSystem(uri, Collections.emptyMap()).getPath(resource);
-                break;
+                return FileSystems.newFileSystem(uri, Collections.emptyMap()).getPath(resource);
             default:
                 throw new IllegalStateException("Unknown scheme: " + scheme);
         }
-        return path;
     }
 
     public static RepoId parseRepo(String url) {
@@ -98,6 +97,6 @@ public class Util {
     public static String toLegalId(RepoId repoId) {
         return repoId.toString()
                 .replaceAll("^\\d+", "")
-                .replaceAll("[-/]", "_");
+                .replaceAll("[-/.]", "_");
     }
 }

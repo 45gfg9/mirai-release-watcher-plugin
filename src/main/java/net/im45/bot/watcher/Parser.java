@@ -5,14 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
-import net.im45.bot.watcher.util.Util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class Parser {
     private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
@@ -40,12 +36,14 @@ public final class Parser {
         return map;
     }
 
-    public static Release parseRelease(JsonElement jsonElement) {
-        JsonObject release = jsonElement.getAsJsonObject()
+    public static Optional<Release> parseRelease(JsonElement jsonElement) {
+        JsonArray releaseNode = jsonElement.getAsJsonObject()
                 .getAsJsonObject("releases")
-                .getAsJsonArray("nodes")
-                .get(0)
-                .getAsJsonObject();
+                .getAsJsonArray("nodes");
+        if (releaseNode.size() == 0) {
+            return Optional.empty();
+        }
+        JsonObject release = releaseNode.get(0).getAsJsonObject();
         JsonObject author = release.getAsJsonObject("author");
         JsonObject assetsConn = release.getAsJsonObject("releaseAssets");
         int assetsCount = assetsConn.get("totalCount").getAsInt();
@@ -75,6 +73,6 @@ public final class Parser {
             latest.assets.add(asset);
         });
 
-        return latest;
+        return Optional.of(latest);
     }
 }

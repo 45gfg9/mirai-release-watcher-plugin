@@ -75,7 +75,7 @@ public class StringConsumerWriter extends Writer implements Consumer<String> {
      */
     @Override
     public void write(@NotNull char[] buf) {
-        write(buf, 0, buf.length);
+        write(new String(buf));
     }
 
     /**
