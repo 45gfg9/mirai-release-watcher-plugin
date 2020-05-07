@@ -1,5 +1,6 @@
 package net.im45.bot.watcher;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
@@ -70,7 +71,7 @@ public class Util {
      */
     public static Map<RepoId, Pair<Release, Set<Long>>> filterNew(
             Map<RepoId, Pair<String, Set<Long>>> ver,
-            Map<RepoId, JsonObject> repos) {
+            Map<RepoId, JsonElement> repos) {
 
         Map<RepoId, Pair<Release, Set<Long>>> map = new HashMap<>();
 
