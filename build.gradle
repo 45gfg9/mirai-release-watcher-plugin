@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'net.im45.bot'
-version = '0.1.0'
+version = '0.2.0'
 
 repositories {
     maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
@@ -16,8 +16,8 @@ repositories {
 
 dependencies {
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    compileOnly 'net.mamoe:mirai-core:0.39.1'
-    compileOnly 'net.mamoe:mirai-console:0.4.10'
+    compileOnly 'net.mamoe:mirai-core:0.40.0'
+    compileOnly 'net.mamoe:mirai-console:0.5.1'
     compileOnly 'com.google.code.gson:gson:2.8.6'
 }
 
@@ -30,13 +30,3 @@ compileTestKotlin {
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
-
-task deploy(dependsOn: [shadowJar]) {
-    group('build')
-
-    copy {
-        copySpec ->
-            from file('build/libs')
-            into '/Users/45gfg9/Downloads/mirai/plugins'
-    }
-}

@@ -2,6 +2,13 @@ package net.im45.bot.watcher.gh;
 
 import java.util.Objects;
 
+/**
+ * Utility class recording a Repository's ID.
+ *
+ * If use Java 14, maybe consider use record.
+ *
+ * @author 45gfg9
+ */
 public final class RepoId {
     public final String owner;
     public final String name;
@@ -15,6 +22,7 @@ public final class RepoId {
         return new RepoId(owner, name);
     }
 
+    @Override
     public String toString() {
         return owner + "/" + name;
     }
@@ -33,3 +41,4 @@ public final class RepoId {
         return Objects.hash(owner, name);
     }
 }
+

@@ -1,7 +1,6 @@
 package net.im45.bot.watcher;
 
 import net.im45.bot.watcher.constant.Status;
-import net.im45.bot.watcher.gh.RepoId;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.BlockingCommand;
 import net.mamoe.mirai.console.command.CommandSender;
@@ -24,30 +23,51 @@ import java.util.function.Consumer;
 /**
  * Yet another <a href="https://github.com/mamoe/mirai-console">mirai-console</a> plugin.
  * <p>
- * Currently WIP, not functional.
+ * Currently WIP. Maybe usable?
  * <p>
  * This plugin uses <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a> to fetch data.
  * <p>
  * To use this plugin you need to generate a Personal Access Token on GitHub Developer settings page.
  * <p>
  * Only minimal permission is required (that is, PUBLIC_ACCESS)
+ *
+ * @author 45gfg9
  */
-
 public class Watcher extends PluginBase {
 
-    private static final Request request = new Request();
+    /**
+     * The {@link Request} object we are using.
+     */
+    private final Request request = new Request();
+
+    /**
+     * The logger.
+     */
     private final MiraiLogger logger = getLogger();
 
-    // Interval between checks
+    /**
+     * Interval between each check in milliseconds.
+     */
     private int intervalMs;
 
-    private Bot bot;
-
+    /**
+     * Config for plugin settings,
+     */
     private Config settings;
+
+    /**
+     * Config for watching repositories
+     */
     private Config watchers;
 
+    /**
+     * Repeat task for checking
+     */
     private PluginScheduler.RepeatTaskReceipt repeatTask;
 
+    /**
+     * Used to transport data between {@link #onLoad()} and {@link #onEnable()}.
+     */
     private Future<String> future;
 
     @Override
@@ -59,7 +79,7 @@ public class Watcher extends PluginBase {
 
         settings = loadConfig("settings.yml");
         settings.setIfAbsent("token", "Not set");
-        settings.setIfAbsent("interval", 60 * 1000);
+        settings.setIfAbsent("interval", 30 * 1000); // 30s default
         settings.setIfAbsent("autostart", false);
 
         String token = settings.getString("token");
@@ -75,9 +95,10 @@ public class Watcher extends PluginBase {
     public void onEnable() {
         super.onEnable();
 
+        // Register plugin command
         JCommandManager.getInstance().register(this, new BlockingCommand(
                 "grw",
-                Collections.emptyList(),
+                List.of(),
                 "GitHub Release Watcher",
                 "/grw <start|stop|set <token|interval|autostart|bot> <arg>>"
         ) {
@@ -141,7 +162,7 @@ public class Watcher extends PluginBase {
                             sender.sendMessageBlocking("Not a valid number: " + arg);
                             return true;
                         }
-                        bot = Bot.getInstance(qq);
+                        Bot bot = Bot.getInstance(qq);
                         request.setConsumers(bot);
                         sender.sendMessageBlocking("Bot set.");
                     } else return false;
@@ -156,6 +177,7 @@ public class Watcher extends PluginBase {
             }
         });
 
+        // Listen to group messages
         getEventListener().subscribeAlways(GroupMessage.class, e -> {
             Group subject = e.getSubject();
             List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
@@ -169,13 +191,13 @@ public class Watcher extends PluginBase {
             List<String> args = msg.subList(1, msg.size());
 
             if ("/watch-release".equals(cmd)) {
-                int adds = 0;
+                int i = 0;
                 for (String arg : args) {
                     if (request.add(arg, subject.getId(), subject::sendMessage)) {
-                        adds++;
+                        i++;
                     }
                 }
-                String s = "Added " + adds + " repositor" + (adds == 1 ? "y" : "ies") + ".";
+                String s = "Added " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/unwatch-release".equals(cmd)) {
                 int i = 0;
@@ -190,13 +212,12 @@ public class Watcher extends PluginBase {
                 StringWriter stringWriter = new StringWriter();
                 PrintWriter printWriter = new PrintWriter(stringWriter);
                 printWriter.println("Group " + subject.getId() + " is currently watching:");
-                for (RepoId repo : request.getWatched(subject.getId())) {
-                    printWriter.println(repo);
-                }
-                subject.sendMessage(stringWriter.toString().trim());
+                request.getWatched(subject.getId()).forEach(printWriter::println);
+                subject.sendMessage(stringWriter.toString().strip());
             }
         });
 
+        // Retrieve token info
         String s;
         try {
             s = future.get();
@@ -205,6 +226,7 @@ public class Watcher extends PluginBase {
         }
         handleStatus(s, logger::info, logger::error);
         if (request.hasVerifiedToken() && settings.getBoolean("autostart")) {
+            // FIXME after some time RepeatTask will stop executing
             repeatTask = getScheduler().repeat(request, intervalMs);
         }
     }
@@ -213,9 +235,10 @@ public class Watcher extends PluginBase {
     public void onDisable() {
         super.onDisable();
 
+        // If disable with unverified token, it will lost
+        // Maybe will not fix...
         settings.set("token", request.hasVerifiedToken() ? request.getToken() : "Not set");
         settings.set("interval", intervalMs);
-        // TODO Add a `defaultBot` config
         settings.save();
 
         request.save(watchers);

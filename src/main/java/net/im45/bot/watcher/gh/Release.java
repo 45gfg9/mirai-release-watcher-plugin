@@ -3,6 +3,13 @@ package net.im45.bot.watcher.gh;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Same as defined in {@code resources/frag.graphql}.
+ * If any of that change please change this as well
+ * and the parser method.
+ *
+ * @author 45gfg9
+ */
 public class Release {
     public String name;
     public String url;

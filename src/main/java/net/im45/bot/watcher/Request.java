@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import net.im45.bot.watcher.constant.Status;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
-import net.im45.bot.watcher.io.StringConsumerWriter;
 import net.im45.bot.watcher.util.Pair;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.plugins.Config;
@@ -24,9 +23,20 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Class that handles about networking and IO.
+ * (maybe it did more than described)
+ *
+ * Someday it will have its JavaDoc.
+ *
+ * @author 45gfg9
+ */
 public class Request implements Runnable {
+
+    private static final String fmt = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } ";
 
     private static final Pattern PATTERN = Pattern.compile("[0-9a-z]{40}");
     private static final URL ENDPOINT;
@@ -46,6 +56,8 @@ public class Request implements Runnable {
             ENDPOINT = new URL("https://api.github.com/graphql");
             FRAGMENT_FILE_PATH = Util.getResource(Watcher.class, "/frag.graphql");
         } catch (IOException | URISyntaxException e) {
+            // This will definitely not run
+            // Once the compiled JAR file went wrong, not sure what's the cause.
             throw new RuntimeException(e);
         }
     }
@@ -62,15 +74,17 @@ public class Request implements Runnable {
             while ((s = reader.readLine()) != null)
                 sb.append(' ').append(s.strip());
         } catch (IOException e) {
+            // This will definitely not run
+            // if something happen here it can't be my problem
             throw new RuntimeException(e);
         }
         return sb.toString().strip();
     }
 
-    private static String buildQueryString(Set<RepoId> repos) {
-        if (repos.size() == 0) throw new IllegalArgumentException();
+    private String buildQueryString(Set<RepoId> repos) {
+        if (repos.size() == 0) throw new IllegalArgumentException("Can't construct query " +
+                "from an empty set");
 
-        String fmt = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } ";
         StringBuilder sb = new StringBuilder();
 
         sb.append("query {");
@@ -126,16 +140,16 @@ public class Request implements Runnable {
             // Not a valid token (40 bytes of hexadecimal)
             return Status.INVALID_TOKEN;
         } else {
-            this.tokenBuf = token;
             // Try connecting to GitHub
             try {
                 newConnection(token).getInputStream().close();
             } catch (IOException e) {
                 String msg = e.getMessage();
+                // Unauthorized token
                 if (msg.contains("401")) {
-                    tokenBuf = null;
                     return Status.UNAUTHORIZED;
                 }
+                this.tokenBuf = token;
                 return e.getMessage();
             }
             this.tokenBuf = null;
@@ -161,26 +175,24 @@ public class Request implements Runnable {
                 .stream()
                 .flatMap(p -> p.second.stream())
                 .distinct()
-//                .mapToLong(Long::longValue) // I'm scared please help me
+                .mapToLong(Long::longValue) // I'm scared please help me
                 .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
     }
 
     private Set<Long> getAllGroupIds() {
         return watch.values()
                 .stream()
-                .map(p -> p.second)
-                .reduce(new HashSet<>(), (a, b) -> {
-                    a.addAll(b);
-                    return a;
-                });
+                .flatMap(p -> p.second.stream())
+                .collect(Collectors.toSet());
     }
 
     public boolean add(String repo, long groupId, Consumer<String> notify) {
         RepoId repoId;
-        // TODO Verify repository existence
+        // no existence validation, we put that off to runtime
         try {
             repoId = Util.parseRepo(repo);
         } catch (IllegalArgumentException e) {
+            // teach them a lesson
             notify.accept("Fuck you, what is " + repo + "?");
             return false;
         }
@@ -196,9 +208,8 @@ public class Request implements Runnable {
             watch.put(repo, pair);
         }
 
-        Set<Long> set = pair.second;
         groupOut.put(groupId, notify);
-        return set.add(groupId);
+        return pair.second.add(groupId);
     }
 
     public boolean remove(String repo, long groupId) {
@@ -217,10 +228,7 @@ public class Request implements Runnable {
         Set<Long> set = watch.get(repo).second;
         if (!set.contains(groupId)) return false;
         set.remove(groupId);
-        if (!getAllGroupIds().contains(groupId)) {
-            groupOut.remove(groupId);
-        }
-
+        if (!getAllGroupIds().contains(groupId)) groupOut.remove(groupId);
         if (set.size() == 0) watch.remove(repo);
         return true;
     }
@@ -241,7 +249,7 @@ public class Request implements Runnable {
         watch.forEach((s, p) -> {
             ConfigSection section = ConfigSectionFactory.create();
             section.set("version", p.first);
-            section.set("watcher", new ArrayList<>(p.second));
+            section.set("watcher", new ArrayList<>(p.second)); // it doesn't accept Set...
             config.set(s.toString(), section);
         });
         config.save();
@@ -249,6 +257,7 @@ public class Request implements Runnable {
 
     @Override
     public void run() {
+        debug.accept("Checking...");
         if (watch.isEmpty()) return;
 
         JsonElement jsonElement;
@@ -258,8 +267,10 @@ public class Request implements Runnable {
 
             OutputStream out = connection.getOutputStream();
             writeOut(out);
+//            out.close();
 
             InputStream in = connection.getInputStream();
+            // use GZIPInputStream for we declared "Accept-Encoding: gzip"
             jsonElement = JsonParser.parseReader(new InputStreamReader(new GZIPInputStream(in)));
             in.close();
             connection.disconnect();
@@ -269,13 +280,13 @@ public class Request implements Runnable {
         }
 
         if (Parser.hasErrors(jsonElement)) {
+            // TODO actions on invalid repositories
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
             debug.accept(jsonArray.toString());
-            return;
         }
         if (!Parser.hasData(jsonElement)) {
-            err.accept("Error! Received data doesn't have a \"data\" object?!");
+            err.accept("Error! Received data doesn't have a \"data\" object");
             debug.accept(String.valueOf(jsonElement));
             return;
         }
@@ -283,6 +294,7 @@ public class Request implements Runnable {
         Map<RepoId, Pair<Release, Set<Long>>> newReleases = Util.filterNew(watch, repos);
 
         newReleases.forEach((n, p) -> {
+            // Eventually we need to take values
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             Release r = p.first;
@@ -303,29 +315,29 @@ public class Request implements Runnable {
             }
 
             for (long l : p.second) {
-                groupOut.get(l).accept(stringWriter.toString().trim());
+                groupOut.get(l).accept(stringWriter.toString().strip());
             }
         });
     }
 
-    public void dump() {
-        PrintWriter out = new PrintWriter(new StringConsumerWriter(debug));
-
-        out.print("watch:");
+    /**
+     * Only for debug purpose.
+     */
+    void dump() {
+        debug.accept("watch:");
         watch.forEach((r, p) -> {
-            out.print(r);
-            out.print(p.first);
-            p.second.forEach(out::print);
+            debug.accept(r.toString() + "/"  + p.first);
+            for (Long l : p.second) debug.accept(l.toString());
         });
 
-        out.print("");
-        out.print("groupOut:");
+        debug.accept("");
+        debug.accept("groupOut:");
         groupOut.forEach((l, c) -> {
-            out.print(l);
-            out.print(c);
+            debug.accept(l.toString());
+            debug.accept(c.toString());
         });
 
-        out.print("token: " + token);
-        out.print("tokenBuf: " + tokenBuf);
+        debug.accept("token: " + token);
+        debug.accept("tokenBuf: " + tokenBuf);
     }
 }
