@@ -290,7 +290,7 @@ public class Request implements Runnable {
             debug.accept(String.valueOf(jsonElement));
             return;
         }
-        Map<RepoId, JsonObject> repos = Parser.getRepositories(jsonElement, watch.keySet());
+        Map<RepoId, JsonElement> repos = Parser.getRepositories(jsonElement, watch.keySet());
         Map<RepoId, Pair<Release, Set<Long>>> newReleases = Util.filterNew(watch, repos);
 
         newReleases.forEach((n, p) -> {

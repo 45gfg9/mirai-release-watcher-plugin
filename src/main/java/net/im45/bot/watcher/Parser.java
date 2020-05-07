@@ -48,10 +48,10 @@ public final class Parser {
      * @param repos Repositories watched
      * @return Map containing {@link RepoId} and corresponding {@link JsonObject}.
      */
-    public static Map<RepoId, JsonObject> getRepositories(JsonElement jsonElement, Set<RepoId> repos) {
-        Map<RepoId, JsonObject> map = new HashMap<>();
+    public static Map<RepoId, JsonElement> getRepositories(JsonElement jsonElement, Set<RepoId> repos) {
+        Map<RepoId, JsonElement> map = new HashMap<>();
         JsonObject data = jsonElement.getAsJsonObject().getAsJsonObject("data");
-        repos.forEach(s -> map.put(s, data.getAsJsonObject(Util.toLegalId(s))));
+        repos.forEach(s -> map.put(s, data.get(Util.toLegalId(s))));
         return map;
     }
 
@@ -59,7 +59,7 @@ public final class Parser {
     public static Optional<Release> parseRelease(JsonElement jsonElement) throws RepositoryException {
         // TODO more precise error handling (using `error` object GitHub returned)
         if (jsonElement.isJsonNull()) {
-            throw new RepositoryException("Repository is null (Probably because repository is not exist)");
+            throw new RepositoryException("Repository is null (Probably because repository does not exist)");
         }
 
         JsonArray releaseNode = jsonElement.getAsJsonObject()
