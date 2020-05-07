@@ -173,7 +173,7 @@ public class Util {
     public static String toLegalId(RepoId repoId) {
         // No starting with numbers and no special characters.
         return repoId.toString()
-                .replaceAll("^\\d+", "")
+                .replaceAll("^(\\d)", "_$1")
                 .replaceAll("[-/.]", "_");
     }
 }
