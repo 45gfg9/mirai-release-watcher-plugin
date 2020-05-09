@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'net.im45.bot'
-version = '0.2.0'
+version = '0.2.2'
 
 repositories {
     maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }

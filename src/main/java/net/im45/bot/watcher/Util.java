@@ -15,6 +15,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,34 +25,6 @@ import java.util.regex.Pattern;
  * @author 45gfg9
  */
 public class Util {
-    /**
-     * Pattern for ID repository identifier.
-     * <p>
-     * Example, {@code 45gfg9/mirai-github-release-watcher}.
-     */
-    private static final Pattern ID;
-
-    /**
-     * Pattern for SSH clone link.
-     *
-     * Example, {@code git@github.com:45gfg9/mirai-release-watcher-plugin.git}
-     */
-    private static final Pattern SSH;
-
-    /**
-     * Pattern for both Repository URL and HTTPS clone link.
-     * <p>
-     * Example, {@code https://github.com/45gfg9/mirai-release-watcher-plugin},
-     * or {@code https://github.com/45gfg9/mirai-release-watcher-plugin.git}
-     */
-    private static final Pattern HTTPS;
-
-    // line will be too long to join declaration and assignment
-    static {
-        ID = Pattern.compile("^([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)$");
-        SSH = Pattern.compile("^git@github\\.com:([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)\\.git$");
-        HTTPS = Pattern.compile("^https://github\\.com/([A-Za-z0-9-_]+)/([A-Za-z0-9-_]+)(?:\\.git)?$");
-    }
 
     /**
      * No instantiation.
@@ -97,6 +70,7 @@ public class Util {
             }
         });
 
+        // TODO implement notifications for nonexistent watches
         nonexistent.forEach(ver::remove);
 
         return map;
@@ -110,6 +84,7 @@ public class Util {
      * @throws IllegalArgumentException if given number is negative
      * @return converted {@link String}
      */
+    @Contract(pure = true)
     public static String byteScale(long bytes) {
         if (bytes < 0) {
             throw new IllegalArgumentException("Negative bytes");
@@ -127,6 +102,7 @@ public class Util {
      * @throws URISyntaxException if something go wrong
      * @throws IOException same as above
      */
+    @Contract(pure = true)
     public static Path getResource(Class<?> clazz, String resource) throws URISyntaxException, IOException {
         URI uri = clazz.getResource(resource).toURI();
         String scheme = uri.getScheme();
@@ -138,31 +114,6 @@ public class Util {
             default:
                 throw new IllegalStateException("Unknown scheme: " + scheme);
         }
-    }
-
-    /**
-     * Parse a RepoId from a given url.
-     * @param url The given url.
-     * @throws IllegalArgumentException if given url is not accepted
-     * @return A representing {@link RepoId} object.
-     */
-    public static RepoId parseRepo(String url) {
-        Matcher matcher;
-        String owner;
-        String name;
-
-        if (!((matcher = ID.matcher(url)).find() ||
-                (matcher = SSH.matcher(url)).find() ||
-                (matcher = HTTPS.matcher(url)).find())) {
-            // Only these three formats are accepted
-            // If not, you have problem
-            throw new IllegalArgumentException();
-        }
-
-        owner = matcher.group(1);
-        name = matcher.group(2);
-
-        return RepoId.of(owner, name);
     }
 
     /**

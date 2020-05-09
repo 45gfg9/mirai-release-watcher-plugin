@@ -15,7 +15,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -30,7 +33,8 @@ import java.util.function.Consumer;
  * To use this plugin you need to generate a Personal Access Token on GitHub Developer settings page.
  * <p>
  * Only minimal permission is required (that is, PUBLIC_ACCESS)
- *
+ * <p>
+ * Please note that this plugin only watches for {@code Releases}, not {@code Tags}.
  * @author 45gfg9
  */
 public class Watcher extends PluginBase {
@@ -68,7 +72,7 @@ public class Watcher extends PluginBase {
     /**
      * Used to transport data between {@link #onLoad()} and {@link #onEnable()}.
      */
-    private Future<String> future;
+    private Future<String> tempFuture;
 
     @Override
     public void onLoad() {
@@ -85,7 +89,7 @@ public class Watcher extends PluginBase {
         String token = settings.getString("token");
         intervalMs = settings.getInt("interval");
 
-        future = getScheduler().async(() -> request.setToken(token));
+        tempFuture = getScheduler().async(() -> request.setToken(token));
 
         watchers = loadConfig("watchers.yml");
         request.load(watchers);
@@ -118,19 +122,18 @@ public class Watcher extends PluginBase {
                     } else if (request.hasUnverifiedToken()) {
                         sender.sendMessageBlocking("Token validation failed. " +
                                 "Please try again later.");
-                    } else if (repeatTask == null) {
-                        repeatTask = getScheduler().repeat(request, intervalMs);
+                    } else if (isNoTask()) {
+                        startTask();
                         sender.sendMessageBlocking("Started running.");
                     } else {
                         sender.sendMessageBlocking("Already running!");
                     }
 
                 } else if ("stop".equals(sub)) {
-                    if (repeatTask == null) {
+                    if (isNoTask()) {
                         sender.sendMessageBlocking("Not running!");
                     } else {
-                        repeatTask.setCancelled(true);
-                        repeatTask = null;
+                        cancelTask();
                         sender.sendMessageBlocking("Stopped running.");
                     }
 
@@ -202,7 +205,7 @@ public class Watcher extends PluginBase {
             } else if ("/unwatch-release".equals(cmd)) {
                 int i = 0;
                 for (String arg : args) {
-                    if (request.remove(arg, subject.getId())) {
+                    if (request.remove(arg, subject.getId(), subject::sendMessage)) {
                         i++;
                     }
                 }
@@ -212,7 +215,12 @@ public class Watcher extends PluginBase {
                 StringWriter stringWriter = new StringWriter();
                 PrintWriter printWriter = new PrintWriter(stringWriter);
                 printWriter.println("Group " + subject.getId() + " is currently watching:");
-                request.getWatched(subject.getId()).forEach(printWriter::println);
+                request.getWatched(subject.getId()).forEach((p) -> {
+                    printWriter.print(p.first);
+                    printWriter.print('/');
+                    printWriter.print(p.second);
+                    printWriter.println();
+                });
                 subject.sendMessage(stringWriter.toString().strip());
             }
         });
@@ -220,14 +228,14 @@ public class Watcher extends PluginBase {
         // Retrieve token info
         String s;
         try {
-            s = future.get();
+            s = tempFuture.get();
+            tempFuture = null; // don't use it again
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
         handleStatus(s, logger::info, logger::error);
         if (request.hasVerifiedToken() && settings.getBoolean("autostart")) {
-            // FIXME after some time RepeatTask will stop executing
-            repeatTask = getScheduler().repeat(request, intervalMs);
+            startTask();
         }
     }
 
@@ -242,6 +250,19 @@ public class Watcher extends PluginBase {
         settings.save();
 
         request.save(watchers);
+    }
+
+    private boolean isNoTask() {
+        return repeatTask == null;
+    }
+
+    private void startTask() {
+        repeatTask = getScheduler().repeat(request, intervalMs);
+    }
+
+    private void cancelTask() {
+        repeatTask.setCancelled(true);
+        repeatTask = null;
     }
 
     public void handleStatus(String s, Consumer<String> out) {

@@ -2,12 +2,13 @@ package net.im45.bot.watcher;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonParser;
 import net.im45.bot.watcher.constant.Status;
 import net.im45.bot.watcher.gh.Release;
 import net.im45.bot.watcher.gh.RepoId;
 import net.im45.bot.watcher.util.Pair;
+import net.im45.bot.watcher.util.RepoIdFormatException;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.plugins.Config;
 import net.mamoe.mirai.console.plugins.ConfigSection;
@@ -98,9 +99,10 @@ public class Request implements Runnable {
 
     private static HttpsURLConnection newConnection(String token) throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) ENDPOINT.openConnection();
-        connection.setRequestProperty("User-Agent", "45gfg9/16.33");
+        connection.setRequestProperty("User-Agent", "45gfg9/16.42");
         connection.setRequestProperty("Accept-Encoding", "gzip");
         connection.setRequestProperty("Authorization", "bearer " + token);
+        connection.setReadTimeout(5000);
         return connection;
     }
 
@@ -158,12 +160,12 @@ public class Request implements Runnable {
         }
     }
 
-    public Set<RepoId> getWatched(long groupId) {
-        Set<RepoId> set = new HashSet<>();
+    public Set<Pair<RepoId, String>> getWatched(long groupId) {
+        Set<Pair<RepoId, String>> set = new HashSet<>();
 
         watch.forEach((r, p) -> {
             if (p.second.contains(groupId)) {
-                set.add(r);
+                set.add(Pair.of(r, p.first));
             }
         });
 
@@ -175,7 +177,7 @@ public class Request implements Runnable {
                 .stream()
                 .flatMap(p -> p.second.stream())
                 .distinct()
-                .mapToLong(Long::longValue) // I'm scared please help me
+//                .mapToLong(Long::longValue) // I'm scared please help me
                 .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
     }
 
@@ -190,10 +192,9 @@ public class Request implements Runnable {
         RepoId repoId;
         // no existence validation, we put that off to runtime
         try {
-            repoId = Util.parseRepo(repo);
-        } catch (IllegalArgumentException e) {
-            // teach them a lesson
-            notify.accept("Fuck you, what is " + repo + "?");
+            repoId = RepoId.parse(repo);
+        } catch (RepoIdFormatException e) {
+            notify.accept(e.getMessage());
             return false;
         }
         return add(repoId, groupId, notify);
@@ -212,11 +213,12 @@ public class Request implements Runnable {
         return pair.second.add(groupId);
     }
 
-    public boolean remove(String repo, long groupId) {
+    public boolean remove(String repo, long groupId, Consumer<String> notify) {
         RepoId repoId;
         try {
-            repoId = Util.parseRepo(repo);
-        } catch (IllegalArgumentException e) {
+            repoId = RepoId.parse(repo);
+        } catch (RepoIdFormatException e) {
+            notify.accept(e.getMessage());
             return false;
         }
         return remove(repoId, groupId);
@@ -234,30 +236,32 @@ public class Request implements Runnable {
     }
 
     public void load(Config config) {
-        config.asMap().keySet().forEach(s -> {
-            ConfigSection c = config.getConfigSection(s);
-            String[] id = s.split("/");
+        ConfigSection watched = config.getConfigSection("watches");
+        watched.asMap().keySet().forEach(s -> {
+            ConfigSection c = watched.getConfigSection(s);
+            RepoId repoId = RepoId.parse(s);
             String version = c.getString("version");
             List<Long> longs = c.getLongList("watcher");
-            RepoId repoId = RepoId.of(id[0], id[1]);
             watch.put(repoId, Pair.of(version, new HashSet<>(longs)));
         });
+
         getAllGroupIds().forEach(l -> groupOut.put(l, s -> {}));
     }
 
     public void save(Config config) {
+        ConfigSection watched = config.getConfigSection("watches");
+        watched.clear();
         watch.forEach((s, p) -> {
             ConfigSection section = ConfigSectionFactory.create();
             section.set("version", p.first);
             section.set("watcher", new ArrayList<>(p.second)); // it doesn't accept Set...
-            config.set(s.toString(), section);
+            watched.set(s.toString(), section);
         });
         config.save();
     }
 
     @Override
     public void run() {
-        debug.accept("Checking...");
         if (watch.isEmpty()) return;
 
         JsonElement jsonElement;
@@ -267,20 +271,19 @@ public class Request implements Runnable {
 
             OutputStream out = connection.getOutputStream();
             writeOut(out);
-//            out.close();
+            out.close();
 
             InputStream in = connection.getInputStream();
             // use GZIPInputStream for we declared "Accept-Encoding: gzip"
             jsonElement = JsonParser.parseReader(new InputStreamReader(new GZIPInputStream(in)));
             in.close();
             connection.disconnect();
-        } catch (IOException e) {
+        } catch (IOException | JsonIOException e) {
             err.accept(e.getMessage());
             return;
         }
 
         if (Parser.hasErrors(jsonElement)) {
-            // TODO actions on invalid repositories
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
             debug.accept(jsonArray.toString());
@@ -290,11 +293,12 @@ public class Request implements Runnable {
             debug.accept(String.valueOf(jsonElement));
             return;
         }
+
         Map<RepoId, JsonElement> repos = Parser.getRepositories(jsonElement, watch.keySet());
         Map<RepoId, Pair<Release, Set<Long>>> newReleases = Util.filterNew(watch, repos);
 
         newReleases.forEach((n, p) -> {
-            // Eventually we need to take values
+            // Eventually we need to take values from it
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             Release r = p.first;
