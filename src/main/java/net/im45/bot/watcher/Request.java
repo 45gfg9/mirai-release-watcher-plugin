@@ -102,7 +102,7 @@ public class Request implements Runnable {
         connection.setRequestProperty("User-Agent", "45gfg9/16.42");
         connection.setRequestProperty("Accept-Encoding", "gzip");
         connection.setRequestProperty("Authorization", "bearer " + token);
-        connection.setReadTimeout(5000);
+        connection.setReadTimeout(10000);
         return connection;
     }
 
