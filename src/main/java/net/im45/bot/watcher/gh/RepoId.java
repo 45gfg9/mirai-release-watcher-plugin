@@ -3,15 +3,14 @@ package net.im45.bot.watcher.gh;
 import net.im45.bot.watcher.util.RepoIdFormatException;
 import org.jetbrains.annotations.Contract;
 
-import java.util.IllegalFormatException;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Utility class recording a Repository's ID.
- *
- * If use Java 14, maybe consider use record.
+ * <p>
+ * If use Java 14, maybe consider use record?
  *
  * @author 45gfg9
  */
@@ -25,7 +24,7 @@ public final class RepoId {
 
     /**
      * Pattern for SSH clone link.
-     *
+     * <p>
      * Example, {@code git@github.com:45gfg9/mirai-release-watcher-plugin.git}
      */
     private static final Pattern SSH;
@@ -33,7 +32,7 @@ public final class RepoId {
     /**
      * Pattern for both Repository URL and HTTPS clone link.
      * <p>
-     * Example, {@code https://github.com/45gfg9/mirai-release-watcher-plugin},
+     * Example, {@code https://github.com/45gfg9/mirai-release-watcher-plugin} <br>
      * or {@code https://github.com/45gfg9/mirai-release-watcher-plugin.git}
      */
     private static final Pattern HTTPS;
@@ -48,11 +47,24 @@ public final class RepoId {
     public final String owner;
     public final String name;
 
+    /**
+     * Private constructor, please use {@link #of(String, String)}
+     *
+     * @param owner Repository owner
+     * @param name Repository name
+     */
     private RepoId(String owner, String name) {
         this.owner = owner;
         this.name = name;
     }
 
+    /**
+     * Factory method for creating {@link RepoId} objects.
+     *
+     * @param owner Repository owner
+     * @param name Repository name
+     * @return a {@link RepoId} object
+     */
     @Contract(pure = true)
     public static RepoId of(String owner, String name) {
         return new RepoId(owner, name);
@@ -60,6 +72,7 @@ public final class RepoId {
 
     /**
      * Parse a RepoId from a given url.
+     *
      * @param url The given url.
      * @throws RepoIdFormatException if given url is not accepted
      * @return A representing {@link RepoId} object.
@@ -74,7 +87,7 @@ public final class RepoId {
                 (matcher = SSH.matcher(url)).find() ||
                 (matcher = HTTPS.matcher(url)).find())) {
             // Only these three formats are accepted
-            // If not, you have problem
+            // If not, throw an exception
             throw RepoIdFormatException.forInputString(url);
         }
 
@@ -84,21 +97,38 @@ public final class RepoId {
         return of(owner, name);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@inheritDoc}
+     */
     @Override
     @Contract(pure = true)
     public String toString() {
         return owner + "/" + name;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param o {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+        // final class
         if (!(o instanceof RepoId)) return false;
         RepoId repoId = (RepoId) o;
         return owner.equals(repoId.owner) &&
                 name.equals(repoId.name);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@inheritDoc}
+     */
     @Override
     public int hashCode() {
         return Objects.hash(owner, name);

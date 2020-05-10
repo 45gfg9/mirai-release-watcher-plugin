@@ -1,12 +1,14 @@
 package net.im45.bot.watcher.gh;
 
+import net.im45.bot.watcher.Parser;
+
 import java.util.Date;
 import java.util.List;
 
 /**
  * Same as defined in {@code resources/frag.graphql}.
  * If any of that change please change this as well
- * and the parser method.
+ * and the {@linkplain Parser parser} method.
  *
  * @author 45gfg9
  */

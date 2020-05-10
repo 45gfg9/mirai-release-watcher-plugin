@@ -22,25 +22,24 @@ public class Pair<T, U> {
     public final U second;
 
     /**
-     * Create a new {@link Pair} object.
+     * Private constructor, please use {@link #of(T, U)}
+     *
      * @param t the first element
      * @param u the second element
      */
-    public Pair(T t, U u) {
+    private Pair(T t, U u) {
         this.first = t;
         this.second = u;
     }
 
     /**
-     * A convenient way to construct a {@link Pair} object.
-     * <p>
-     * Sorry, diamond operator.
+     * Factory method for creating {@link Pair} objects.
      *
      * @param <T> Type parameter of first element
      * @param <U> Type parameter of second element
      * @param t the first element
      * @param u the second element
-     * @return the {@link Pair} object same as {@code new Pair<>(t, u)}.
+     * @return a {@link Pair} object.
      */
     public static <T, U> Pair<T, U> of(T t, U u) {
         return new Pair<>(t, u);
@@ -48,8 +47,9 @@ public class Pair<T, U> {
 
     /**
      * {@inheritDoc}
-     * @param o another object
-     * @return if two objects are equal
+     *
+     * @param o {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
     public boolean equals(Object o) {
@@ -62,7 +62,8 @@ public class Pair<T, U> {
 
     /**
      * {@inheritDoc}
-     * @return hashCode of this object.
+     *
+     * @return {@inheritDoc}
      */
     @Override
     public int hashCode() {

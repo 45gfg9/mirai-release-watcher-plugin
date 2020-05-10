@@ -77,6 +77,7 @@ public class Util {
      * Converts number of bytes to corresponding representations.
      * <p>
      * That is, {@code 3530} becomes {@code 3.53}KB and some such.
+     *
      * @param bytes number of bytes
      * @throws IllegalArgumentException if given number is negative
      * @return converted {@link String}
@@ -93,7 +94,8 @@ public class Util {
 
     /**
      * Get resource file path from either class file (development) or jar file (production).
-     * @param clazz the (main (?)) class
+     *
+     * @param clazz the main(?) class
      * @param resource the resource file name
      * @return resource file path
      * @throws URISyntaxException if something go wrong
@@ -115,6 +117,7 @@ public class Util {
 
     /**
      * Converts a RepoId to a legal identifier.
+     *
      * @param repoId A {@link RepoId} object
      * @return The corresponding identifier
      */

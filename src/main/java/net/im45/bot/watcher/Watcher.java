@@ -9,7 +9,7 @@ import net.mamoe.mirai.console.plugins.Config;
 import net.mamoe.mirai.console.plugins.PluginBase;
 import net.mamoe.mirai.console.scheduler.PluginScheduler;
 import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.message.GroupMessage;
+import net.mamoe.mirai.message.GroupMessageEvent;
 import net.mamoe.mirai.utils.MiraiLogger;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +35,7 @@ import java.util.function.Consumer;
  * Only minimal permission is required (that is, PUBLIC_ACCESS)
  * <p>
  * Please note that this plugin only watches for {@code Releases}, not {@code Tags}.
+ *
  * @author 45gfg9
  */
 public class Watcher extends PluginBase {
@@ -181,7 +182,7 @@ public class Watcher extends PluginBase {
         });
 
         // Listen to group messages
-        getEventListener().subscribeAlways(GroupMessage.class, e -> {
+        getEventListener().subscribeAlways(GroupMessageEvent.class, e -> {
             Group subject = e.getSubject();
             List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
                     .toString()

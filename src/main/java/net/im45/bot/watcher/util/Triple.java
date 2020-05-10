@@ -28,21 +28,20 @@ public class Triple<T, U, V> {
     public final V third;
 
     /**
-     * Create a new {@link Triple} object.
+     * Private constructor, please use {@link #of(T, U, V)}
+     *
      * @param t the first element
      * @param u the second element
      * @param v the third element
      */
-    public Triple(T t, U u, V v) {
+    private Triple(T t, U u, V v) {
         this.first = t;
         this.second = u;
         this.third = v;
     }
 
     /**
-     * A convenient way to construct a {@link Triple} object.
-     * <p>
-     * Sorry, diamond operator.
+     * Factory method for creating {@link Triple} objects.
      *
      * @param <T> Type parameter of first element
      * @param <U> Type parameter of second element
@@ -50,7 +49,7 @@ public class Triple<T, U, V> {
      * @param t the first element
      * @param u the second element
      * @param v the third element
-     * @return the {@link Triple} object same as {@code new Triple<>(t, u, v)}.
+     * @return a {@link Triple} object.
      */
     public static <T, U, V> Triple<T, U, V> of(T t, U u, V v) {
         return new Triple<>(t, u, v);
@@ -58,8 +57,9 @@ public class Triple<T, U, V> {
 
     /**
      * {@inheritDoc}
-     * @param o another object
-     * @return if two objects are equal
+     *
+     * @param o {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
     public boolean equals(Object o) {
@@ -73,7 +73,8 @@ public class Triple<T, U, V> {
 
     /**
      * {@inheritDoc}
-     * @return hashCode of this object.
+     *
+     * @return {@inheritDoc}
      */
     @Override
     public int hashCode() {
