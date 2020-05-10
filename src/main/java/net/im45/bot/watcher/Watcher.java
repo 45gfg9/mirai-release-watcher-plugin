@@ -85,10 +85,12 @@ public class Watcher extends PluginBase {
         settings = loadConfig("settings.yml");
         settings.setIfAbsent("token", "Not set");
         settings.setIfAbsent("interval", 30 * 1000); // 30s default
+        settings.setIfAbsent("timeout", 15 * 1000); // 15s default
         settings.setIfAbsent("autostart", false);
 
         String token = settings.getString("token");
         intervalMs = settings.getInt("interval");
+        request.setTimeout(settings.getInt("timeout"));
 
         tempFuture = getScheduler().async(() -> request.setToken(token));
 
@@ -150,7 +152,7 @@ public class Watcher extends PluginBase {
                     } else if ("interval".equals(name)) {
                         try {
                             intervalMs = Integer.parseInt(arg);
-                            sender.sendMessageBlocking("Interval set to " + arg);
+                            sender.sendMessageBlocking("Interval set to " + arg + "ms");
                         } catch (NumberFormatException e) {
                             sender.sendMessageBlocking("Not a valid number: " + arg);
                         }
@@ -169,12 +171,19 @@ public class Watcher extends PluginBase {
                         Bot bot = Bot.getInstance(qq);
                         request.setConsumers(bot);
                         sender.sendMessageBlocking("Bot set.");
+                    } else if ("timeout".equals(name)) {
+                        try {
+                            request.setTimeout(Integer.parseInt(arg));
+                            sender.sendMessageBlocking("Timeout set to: " + arg + "ms");
+                        } catch (NumberFormatException e) {
+                            sender.sendMessageBlocking("Not a valid number: " + arg);
+                        }
                     } else return false;
                 } else if ("dump".equals(sub)) {
+                    request.dump();
+
                     logger.debug("Interval: " + intervalMs);
                     logger.debug("RepeatTask: " + repeatTask);
-
-                    request.dump();
                 } else return false;
 
                 return true;
@@ -186,7 +195,7 @@ public class Watcher extends PluginBase {
             Group subject = e.getSubject();
             List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
                     .toString()
-                    .replaceFirst("\\[mirai:source:.*?]", "")
+                    .replaceFirst("\\[mirai:source:\\d+,\\d+]", "")
                     .split(" ")));
             msg.removeIf(String::isBlank);
             if (msg.size() == 0) return;
@@ -201,6 +210,7 @@ public class Watcher extends PluginBase {
                         i++;
                     }
                 }
+                if (i != 0) request.save(watchers);
                 String s = "Added " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/unwatch-release".equals(cmd)) {
@@ -210,6 +220,7 @@ public class Watcher extends PluginBase {
                         i++;
                     }
                 }
+                if (i != 0) request.save(watchers);
                 String s = "Removed " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/watch-list".equals(cmd)) {
@@ -248,6 +259,7 @@ public class Watcher extends PluginBase {
         // Maybe will not fix...
         settings.set("token", request.hasVerifiedToken() ? request.getToken() : "Not set");
         settings.set("interval", intervalMs);
+        settings.set("timeout", request.getTimeout());
         settings.save();
 
         request.save(watchers);

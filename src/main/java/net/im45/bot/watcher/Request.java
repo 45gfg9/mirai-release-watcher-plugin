@@ -52,6 +52,8 @@ public class Request implements Runnable {
     private String token;
     private String tokenBuf;
 
+    private int timeout;
+
     static {
         try {
             ENDPOINT = new URL("https://api.github.com/graphql");
@@ -97,12 +99,12 @@ public class Request implements Runnable {
         return String.format("{\"query\": \"%s\"}", sb.toString());
     }
 
-    private static HttpsURLConnection newConnection(String token) throws IOException {
+    private HttpsURLConnection newConnection(String token) throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) ENDPOINT.openConnection();
         connection.setRequestProperty("User-Agent", "45gfg9/16.42");
         connection.setRequestProperty("Accept-Encoding", "gzip");
         connection.setRequestProperty("Authorization", "bearer " + token);
-        connection.setReadTimeout(10000);
+        connection.setReadTimeout(timeout);
         return connection;
     }
 
@@ -118,6 +120,14 @@ public class Request implements Runnable {
 
     public void setErr(Consumer<String> err) {
         this.err = err;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public int getTimeout() {
+        return timeout;
     }
 
     public boolean hasVerifiedToken() {
@@ -343,5 +353,6 @@ public class Request implements Runnable {
 
         debug.accept("token: " + token);
         debug.accept("tokenBuf: " + tokenBuf);
+        debug.accept("timeout: " + timeout);
     }
 }
