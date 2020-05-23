@@ -56,14 +56,22 @@ public class Util {
                 return;
             }
             if (optRelease.isEmpty()) {
+                // no release
                 ver.put(r, Pair.of("-", p.second));
                 return;
             }
 
+            // it is not empty
             Release release = optRelease.get();
+
             if (!release.tagName.equals(p.first)) {
+                // new tag name is different from current tag name
+                // update current
                 ver.put(r, Pair.of(release.tagName, p.second));
-                map.put(r, Pair.of(release, p.second));
+                if (!p.first.equals("?")) {
+                    // not first time...
+                    map.put(r, Pair.of(release, p.second));
+                }
             }
         });
 

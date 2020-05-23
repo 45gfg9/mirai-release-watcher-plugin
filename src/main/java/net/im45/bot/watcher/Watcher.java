@@ -26,8 +26,6 @@ import java.util.function.Consumer;
 /**
  * Yet another <a href="https://github.com/mamoe/mirai-console">mirai-console</a> plugin.
  * <p>
- * Currently WIP. Maybe usable?
- * <p>
  * This plugin uses <a href="https://developer.github.com/v4/">GitHub GraphQL API v4</a> to fetch data.
  * <p>
  * To use this plugin you need to generate a Personal Access Token on GitHub Developer settings page.
@@ -92,6 +90,7 @@ public class Watcher extends PluginBase {
         intervalMs = settings.getInt("interval");
         request.setTimeout(settings.getInt("timeout"));
 
+        // Why scheduler is  `PluginScheduler?`?
         tempFuture = getScheduler().async(() -> request.setToken(token));
 
         watchers = loadConfig("watchers.yml");
@@ -193,15 +192,15 @@ public class Watcher extends PluginBase {
         // Listen to group messages
         getEventListener().subscribeAlways(GroupMessageEvent.class, e -> {
             Group subject = e.getSubject();
-            List<String> msg = new ArrayList<>(Arrays.asList(e.getMessage()
+            String msg = e.getMessage()
                     .toString()
-                    .replaceFirst("\\[mirai:source:\\d+,\\d+]", "")
-                    .split(" ")));
-            msg.removeIf(String::isBlank);
-            if (msg.size() == 0) return;
+                    .replaceFirst("\\[mirai:source:\\d+,\\d+]", "");
+            if (msg.isEmpty()) return;
+            List<String> msgs = new ArrayList<>(Arrays.asList(msg.split(" ")));
+            msgs.removeIf(String::isBlank);
 
-            String cmd = msg.get(0);
-            List<String> args = msg.subList(1, msg.size());
+            String cmd = msgs.get(0);
+            List<String> args = msgs.subList(1, msgs.size());
 
             if ("/watch-release".equals(cmd)) {
                 int i = 0;

@@ -139,8 +139,7 @@ public class Request implements Runnable {
     }
 
     public String checkAgain() {
-        if (hasUnverifiedToken()) return setToken(tokenBuf);
-        return hasVerifiedToken() ? Status.OK : Status.INVALID_TOKEN;
+        return hasUnverifiedToken() ? setToken(tokenBuf) : hasVerifiedToken() ? Status.OK : Status.INVALID_TOKEN;
     }
 
     public String getToken() {
