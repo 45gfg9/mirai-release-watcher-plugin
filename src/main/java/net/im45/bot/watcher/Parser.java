@@ -87,7 +87,11 @@ public final class Parser {
             // or GitHub changed the format
             throw new RuntimeException(e);
         }
-        latest.authorName = author.get("name").getAsString();
+
+        latest.authorName = Optional.of(author.get("name"))
+                .filter(JsonElement::isJsonPrimitive)
+                .map(JsonElement::getAsString)
+                .orElse("null");
         latest.authorLogin = author.get("login").getAsString();
         latest.assets = new ArrayList<>(assetsCount);
         assets.forEach(e -> {

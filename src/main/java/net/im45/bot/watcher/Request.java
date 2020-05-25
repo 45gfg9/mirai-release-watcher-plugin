@@ -295,7 +295,8 @@ public class Request implements Runnable {
         if (Parser.hasErrors(jsonElement)) {
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
-            debug.accept(jsonArray.toString());
+            err.accept(jsonArray.toString());
+//            debug.accept(jsonElement.toString());
         }
         if (!Parser.hasData(jsonElement)) {
             err.accept("Error! Received data doesn't have a \"data\" object");

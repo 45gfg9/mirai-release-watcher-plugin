@@ -69,7 +69,7 @@ public class Util {
                 // update current
                 ver.put(r, Pair.of(release.tagName, p.second));
                 if (!p.first.equals("?")) {
-                    // not first time...
+                    // not first time, notice 'em
                     map.put(r, Pair.of(release, p.second));
                 }
             }
@@ -84,7 +84,7 @@ public class Util {
     /**
      * Converts number of bytes to corresponding representations.
      * <p>
-     * That is, {@code 3530} becomes {@code 3.53}KB and some such.
+     * That is, {@code 3530} becomes {@code 3.53KB} and some such.
      *
      * @param bytes number of bytes
      * @throws IllegalArgumentException if given number is negative
@@ -117,14 +117,14 @@ public class Util {
             case "file":
                 return Paths.get(uri);
             case "jar":
-                return FileSystems.newFileSystem(uri, Collections.emptyMap()).getPath(resource);
+                return FileSystems.newFileSystem(uri, Map.of()).getPath(resource);
             default:
                 throw new IllegalStateException("Unknown scheme: " + scheme);
         }
     }
 
     /**
-     * Converts a RepoId to a legal identifier.
+     * Converts a {@code RepoId} to a legal identifier.
      *
      * @param repoId A {@link RepoId} object
      * @return The corresponding identifier
@@ -133,7 +133,7 @@ public class Util {
     public static String toLegalId(RepoId repoId) {
         // No starting with numbers and no special characters.
         return repoId.toString()
-                .replaceAll("^(\\d)", "_$1")
+                .replaceFirst("^(\\d)", "_$1")
                 .replaceAll("[-/.]", "_");
     }
 }
