@@ -18,7 +18,7 @@ public final class RepoId {
     /**
      * Pattern for ID repository identifier.
      * <p>
-     * Example, {@code 45gfg9/mirai-github-release-watcher}.
+     * Example, {@code 45gfg9/mirai-release-watcher-plugin}.
      */
     private static final Pattern ID;
 
