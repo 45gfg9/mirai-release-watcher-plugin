@@ -1,6 +1,6 @@
 name: "release-watcher"
 author: "45gfg9"
-version: "0.2.6"
+version: "0.2.7"
 main: "net.im45.bot.watcher.Watcher"
 info: ""
 depends: []

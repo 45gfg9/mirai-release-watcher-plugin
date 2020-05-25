@@ -83,9 +83,9 @@ public final class RepoId {
         String owner;
         String name;
 
-        if (!((matcher = ID.matcher(url)).find() ||
-                (matcher = SSH.matcher(url)).find() ||
-                (matcher = HTTPS.matcher(url)).find())) {
+        if (!((matcher = ID.matcher(url)).matches() ||
+                (matcher = SSH.matcher(url)).matches() ||
+                (matcher = HTTPS.matcher(url)).matches())) {
             // Only these three formats are accepted
             // If not, throw an exception
             throw RepoIdFormatException.forInputString(url);
