@@ -1,4 +1,7 @@
 # GitHub Release Watcher
+
+[![CodeFactor](https://www.codefactor.io/repository/github/45gfg9/mirai-release-watcher-plugin/badge)](https://www.codefactor.io/repository/github/45gfg9/mirai-release-watcher-plugin)
+
 *Finally, some good f\*\*king network IOs.*
 
 This is a [mirai-console](https://github.com/mamoe/mirai-console) plugin.
