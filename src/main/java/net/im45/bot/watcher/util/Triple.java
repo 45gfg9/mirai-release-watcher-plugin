@@ -8,7 +8,6 @@ import java.util.Objects;
  * @param <T> Type parameter of first element
  * @param <U> Type parameter of second element
  * @param <V> Type parameter of third element
- *
  * @author 45gfg9
  */
 public class Triple<T, U, V> {
@@ -46,9 +45,9 @@ public class Triple<T, U, V> {
      * @param <T> Type parameter of first element
      * @param <U> Type parameter of second element
      * @param <V> Type parameter of third element
-     * @param t the first element
-     * @param u the second element
-     * @param v the third element
+     * @param t   the first element
+     * @param u   the second element
+     * @param v   the third element
      * @return a {@link Triple} object.
      */
     public static <T, U, V> Triple<T, U, V> of(T t, U u, V v) {

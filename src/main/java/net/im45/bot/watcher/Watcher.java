@@ -39,7 +39,7 @@ import java.util.function.Consumer;
 public class Watcher extends PluginBase {
 
     /**
-     * The {@link Request} object we are using.
+     * The {@link Request} object.
      */
     private final Request request = new Request();
 
@@ -54,17 +54,12 @@ public class Watcher extends PluginBase {
     private int intervalMs;
 
     /**
-     * Config for plugin settings,
+     * Config for plugin settings.
      */
     private Config settings;
 
     /**
-     * Config for watching repositories
-     */
-    private Config watchers;
-
-    /**
-     * Repeat task for checking
+     * Repeat task for checking new releases
      */
     private PluginScheduler.RepeatTaskReceipt repeatTask;
 
@@ -254,8 +249,8 @@ public class Watcher extends PluginBase {
     public void onDisable() {
         super.onDisable();
 
-        // If disable with unverified token, it will lost
-        // Maybe will not fix...
+        // Unverified token will lost
+        // Not bug, won't fix.
         settings.set("token", request.hasVerifiedToken() ? request.getToken() : "Not set");
         settings.set("interval", intervalMs);
         settings.set("timeout", request.getTimeout());

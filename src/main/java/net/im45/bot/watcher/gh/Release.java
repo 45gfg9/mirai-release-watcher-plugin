@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Same as defined in {@code resources/frag.graphql}.
  * If any of that change please change this as well
- * and the {@linkplain Parser parser} method.
+ * and the {@link Parser} methods.
  *
  * @author 45gfg9
  */

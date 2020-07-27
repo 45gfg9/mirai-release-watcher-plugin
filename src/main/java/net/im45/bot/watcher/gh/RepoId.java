@@ -51,7 +51,7 @@ public final class RepoId {
      * Private constructor, please use {@link #of(String, String)}
      *
      * @param owner Repository owner
-     * @param name Repository name
+     * @param name  Repository name
      */
     private RepoId(String owner, String name) {
         this.owner = owner;
@@ -62,7 +62,7 @@ public final class RepoId {
      * Factory method for creating {@link RepoId} objects.
      *
      * @param owner Repository owner
-     * @param name Repository name
+     * @param name  Repository name
      * @return a {@link RepoId} object
      */
     @Contract(pure = true)
@@ -74,8 +74,8 @@ public final class RepoId {
      * Parse a RepoId from a given url.
      *
      * @param url The given url.
+     * @return {@link RepoId} object representing the repository.
      * @throws RepoIdFormatException if given url is not accepted
-     * @return A representing {@link RepoId} object.
      */
     @Contract(pure = true)
     public static RepoId parse(String url) {

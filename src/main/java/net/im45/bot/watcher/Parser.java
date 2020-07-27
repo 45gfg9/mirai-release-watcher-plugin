@@ -20,7 +20,7 @@ public final class Parser {
     /**
      * The {@link SimpleDateFormat} object used to parse date format
      */
-    private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+    private static final SimpleDateFormat FMT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
 
     /**
      * No instantiation.
@@ -45,7 +45,7 @@ public final class Parser {
      * Get repositories map from a big chunk of {@link JsonElement}.
      *
      * @param jsonElement data
-     * @param repos Repositories watched
+     * @param repos       Repositories watched
      * @return Map containing {@link RepoId} and corresponding {@link JsonObject}.
      */
     public static Map<RepoId, JsonElement> getRepositories(JsonElement jsonElement, Set<RepoId> repos) {
@@ -79,8 +79,8 @@ public final class Parser {
         latest.url = release.get("url").getAsString();
         latest.tagName = release.get("tagName").getAsString();
         try {
-            latest.createdAt = fmt.parse(release.get("createdAt").getAsString());
-            latest.publishedAt = fmt.parse(release.get("publishedAt").getAsString());
+            latest.createdAt = FMT.parse(release.get("createdAt").getAsString());
+            latest.publishedAt = FMT.parse(release.get("publishedAt").getAsString());
         } catch (ParseException e) {
             // This should never happen
             // If happened then either received data is corrupted,

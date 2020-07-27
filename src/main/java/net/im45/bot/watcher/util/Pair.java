@@ -7,7 +7,6 @@ import java.util.Objects;
  *
  * @param <T> Type parameter of first element
  * @param <U> Type parameter of second element
- *
  * @author 45gfg9
  */
 public class Pair<T, U> {
@@ -37,8 +36,8 @@ public class Pair<T, U> {
      *
      * @param <T> Type parameter of first element
      * @param <U> Type parameter of second element
-     * @param t the first element
-     * @param u the second element
+     * @param t   the first element
+     * @param u   the second element
      * @return a {@link Pair} object.
      */
     public static <T, U> Pair<T, U> of(T t, U u) {

@@ -31,31 +31,72 @@ import java.util.zip.GZIPInputStream;
  * Class that handles about networking and IO.
  * (maybe it did more than described)
  *
- * Someday it will have its JavaDoc.
- *
  * @author 45gfg9
  */
 public class Request implements Runnable {
 
-    private static final String fmt = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } ";
+    /**
+     * Format string to construct GraphQL request dynamically.
+     */
+    private static final String FMT = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } ";
 
+    /**
+     * Token validation RegEx.
+     */
     private static final Pattern PATTERN = Pattern.compile("[0-9a-z]{40}");
+
+    /**
+     * GitHub GraphQL API Endpoint.
+     */
     private static final URL ENDPOINT;
+
+    /**
+     * Path to GraphQL template.
+     */
     private static final Path FRAGMENT_FILE_PATH;
 
+    /**
+     * Map of watching repositories.
+     * <p>
+     * {@code Key}: {@link RepoId} repos
+     * <p>
+     * {@code Value}: {@link Pair} of latest version and watching group numbers
+     */
     private final Map<RepoId, Pair<String, Set<Long>>> watch = new HashMap<>();
+
+    /**
+     * Cached group message output.
+     * <p>
+     * WHY MIRAI PLUGINS CANNOT SEND MESSAGE ON ITS OWN WILL
+     */
     private final Map<Long, Consumer<String>> groupOut = new HashMap<>();
 
+    /**
+     * Config for watching repositories.
+     */
+    private Config config;
+
+    /**
+     * Debug and Error outputs.
+     */
     private Consumer<String> debug;
     private Consumer<String> err;
 
+    /**
+     * Token string and buffer.
+     */
     private String token;
     private String tokenBuf;
 
+    /**
+     * Request timeout, in milliseconds.
+     */
     private int timeout;
 
     static {
         try {
+            // Initialize
+            // Line will be too long to join declaration and assignment
             ENDPOINT = new URL("https://api.github.com/graphql");
             FRAGMENT_FILE_PATH = Util.getResource(Watcher.class, "/frag.graphql");
         } catch (IOException | URISyntaxException e) {
@@ -67,7 +108,8 @@ public class Request implements Runnable {
 
     public Request() {
         // Avoid NullPointerException
-        this.err = this.debug = s -> {};
+        this.err = this.debug = s -> {
+        };
     }
 
     private static String getFragment() {
@@ -92,7 +134,7 @@ public class Request implements Runnable {
 
         sb.append("query {");
         for (RepoId repo : repos) {
-            sb.append(String.format(fmt, Util.toLegalId(repo), repo.owner, repo.name));
+            sb.append(String.format(FMT, Util.toLegalId(repo), repo.owner, repo.name));
         }
         sb.append("} ").append(getFragment());
 
@@ -254,7 +296,8 @@ public class Request implements Runnable {
             watch.put(repoId, Pair.of(version, new HashSet<>(longs)));
         });
 
-        getAllGroupIds().forEach(l -> groupOut.put(l, s -> {}));
+        getAllGroupIds().forEach(l -> groupOut.put(l, s -> {
+        }));
     }
 
     public void save(Config config) {
@@ -340,7 +383,7 @@ public class Request implements Runnable {
     void dump() {
         debug.accept("watch:");
         watch.forEach((r, p) -> {
-            debug.accept(r.toString() + "/"  + p.first);
+            debug.accept(r.toString() + "/" + p.first);
             for (Long l : p.second) debug.accept(l.toString());
         });
 

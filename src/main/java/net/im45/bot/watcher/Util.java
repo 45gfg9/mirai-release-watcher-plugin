@@ -30,12 +30,12 @@ public class Util {
         throw new UnsupportedOperationException();
     }
 
-    private static final char[] SUFFIXES = { 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D' };
+    private static final char[] SUFFIXES = {'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D'};
 
     /**
      * Filter out new repositories from a map whose values are {@link JsonObject}s.
      *
-     * @param ver Map containing repositories' information
+     * @param ver   Map containing repositories' information
      * @param repos Map containing repositories' data.
      * @return filtered new repos.
      */
@@ -87,8 +87,8 @@ public class Util {
      * That is, {@code 3530} becomes {@code 3.53KB} and some such.
      *
      * @param bytes number of bytes
-     * @throws IllegalArgumentException if given number is negative
      * @return converted {@link String}
+     * @throws IllegalArgumentException if given number is negative
      */
     @Contract(pure = true)
     public static String byteScale(long bytes) {
@@ -103,11 +103,11 @@ public class Util {
     /**
      * Get resource file path from either class file (development) or jar file (production).
      *
-     * @param clazz the main(?) class
+     * @param clazz    the main(?) class
      * @param resource the resource file name
      * @return resource file path
      * @throws URISyntaxException if something go wrong
-     * @throws IOException same as above
+     * @throws IOException        same as above
      */
     @Contract(pure = true)
     public static Path getResource(Class<?> clazz, String resource) throws URISyntaxException, IOException {

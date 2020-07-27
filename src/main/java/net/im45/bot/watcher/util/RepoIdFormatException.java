@@ -7,8 +7,8 @@ import net.im45.bot.watcher.gh.RepoId;
  * a string to a {@link RepoId}, but that the string does not
  * have the appropriate format.
  *
- * @see RepoId#parse(String)
  * @author 45gfg9
+ * @see RepoId#parse(String)
  */
 public class RepoIdFormatException extends IllegalArgumentException {
 
