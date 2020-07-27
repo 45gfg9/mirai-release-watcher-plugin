@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'net.im45.bot'
-version = '0.2.8'
+version = '0.2.9'
 
 repositories {
     maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    compileOnly 'net.mamoe:mirai-core:1.0.1'
+    compileOnly 'net.mamoe:mirai-core:1.1.3'
     compileOnly 'net.mamoe:mirai-console:0.5.2'
     compileOnly 'com.google.code.gson:gson:2.8.6'
 }

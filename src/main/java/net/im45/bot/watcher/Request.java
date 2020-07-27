@@ -156,6 +156,10 @@ public class Request implements Runnable {
         out.write(queryString.getBytes(StandardCharsets.UTF_8));
     }
 
+    public void setConfig(Config config) {
+        this.config = config;
+    }
+
     public void setDebug(Consumer<String> debug) {
         this.debug = debug;
     }
@@ -287,6 +291,7 @@ public class Request implements Runnable {
     }
 
     public void load(Config config) {
+        setConfig(config);
         ConfigSection watched = config.getConfigSection("watches");
         watched.asMap().keySet().forEach(s -> {
             ConfigSection c = watched.getConfigSection(s);
@@ -300,7 +305,7 @@ public class Request implements Runnable {
         }));
     }
 
-    public void save(Config config) {
+    public void save() {
         ConfigSection watched = config.getConfigSection("watches");
         watched.clear();
         watch.forEach((s, p) -> {
@@ -339,7 +344,7 @@ public class Request implements Runnable {
             err.accept("Error received from upstream");
             JsonArray jsonArray = Parser.getErrors(jsonElement);
             err.accept(jsonArray.toString());
-//            debug.accept(jsonElement.toString());
+            debug.accept(jsonElement.toString());
         }
         if (!Parser.hasData(jsonElement)) {
             err.accept("Error! Received data doesn't have a \"data\" object");
@@ -349,9 +354,11 @@ public class Request implements Runnable {
 
         Map<RepoId, JsonElement> repos = Parser.getRepositories(jsonElement, watch.keySet());
         Map<RepoId, Pair<Release, Set<Long>>> newReleases = Util.filterNew(watch, repos);
+        // Map watch is modified in filterNew, save here
+        save();
 
         newReleases.forEach((n, p) -> {
-            // Eventually we need to take values from it
+            // We need to take values from StringWriter
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             Release r = p.first;

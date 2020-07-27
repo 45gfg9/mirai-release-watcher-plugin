@@ -88,8 +88,8 @@ public class Watcher extends PluginBase {
         // Why scheduler is  `PluginScheduler?`?
         tempFuture = getScheduler().async(() -> request.setToken(token));
 
-        watchers = loadConfig("watchers.yml");
-        request.load(watchers);
+        // Load config for Request object
+        request.load(loadConfig("watchers.yml"));
     }
 
     @Override
@@ -204,7 +204,7 @@ public class Watcher extends PluginBase {
                         i++;
                     }
                 }
-                if (i != 0) request.save(watchers);
+                if (i != 0) request.save();
                 String s = "Added " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/unwatch-release".equals(cmd)) {
@@ -214,7 +214,7 @@ public class Watcher extends PluginBase {
                         i++;
                     }
                 }
-                if (i != 0) request.save(watchers);
+                if (i != 0) request.save();
                 String s = "Removed " + i + " repositor" + (i == 1 ? "y" : "ies") + ".";
                 subject.sendMessage(s);
             } else if ("/watch-list".equals(cmd)) {
@@ -256,7 +256,9 @@ public class Watcher extends PluginBase {
         settings.set("timeout", request.getTimeout());
         settings.save();
 
-        request.save(watchers);
+        request.save();
+
+        if (!isNoTask()) cancelTask();
     }
 
     private boolean isNoTask() {
