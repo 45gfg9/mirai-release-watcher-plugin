@@ -1,2 +1,1 @@
-object Request {
-}
+object Request

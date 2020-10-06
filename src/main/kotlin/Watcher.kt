@@ -1,9 +1,6 @@
 import com.google.auto.service.AutoService
-import net.mamoe.mirai.console.command.CommandSender
-import net.mamoe.mirai.console.command.CompositeCommand
-import net.mamoe.mirai.console.data.AutoSavePluginConfig
-import net.mamoe.mirai.console.data.AutoSavePluginData
-import net.mamoe.mirai.console.data.value
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregisterAllCommands
 import net.mamoe.mirai.console.plugin.jvm.JvmPlugin
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
@@ -18,32 +15,19 @@ object Watcher : KotlinPlugin(
 ) {
     override fun onEnable() {
         super.onEnable()
+
+        GrwSetting.reload()
+        GrwWatches.reload()
+
+        GrwCmd.register()
+        WatchReleaseCmd.register()
+        UnwatchReleaseCmd.register()
+        WatchListCmd.register()
     }
 
     override fun onDisable() {
         super.onDisable()
-    }
-}
 
-object GrwSetting : AutoSavePluginConfig() {
-    val token by value("unset")
-}
-
-object GrwData : AutoSavePluginData() {
-
-}
-
-object GrwCommand : CompositeCommand(
-    Watcher, "grw",
-    description = "GitHub Release Watcher"
-) {
-    @SubCommand
-    suspend fun CommandSender.start() {
-
-    }
-
-    @SubCommand
-    suspend fun CommandSender.stop() {
-
+        unregisterAllCommands()
     }
 }
