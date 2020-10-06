@@ -1,5 +1,6 @@
 package net.im45.bot.watcher;
 
+import com.google.auto.service.AutoService;
 import net.im45.bot.watcher.constant.Status;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.BlockingCommand;
@@ -162,8 +163,12 @@ public class Watcher extends PluginBase {
                             sender.sendMessageBlocking("Not a valid number: " + arg);
                             return true;
                         }
-                        Bot bot = Bot.getInstance(qq);
-                        request.setConsumers(bot);
+                        if (qq == 0) {
+                            request.clearConsumers();
+                        } else {
+                            Bot bot = Bot.getInstance(qq);
+                            request.setConsumers(bot);
+                        }
                         sender.sendMessageBlocking("Bot set.");
                     } else if ("timeout".equals(name)) {
                         try {
@@ -187,9 +192,7 @@ public class Watcher extends PluginBase {
         // Listen to group messages
         getEventListener().subscribeAlways(GroupMessageEvent.class, e -> {
             Group subject = e.getSubject();
-            String msg = e.getMessage()
-                    .toString()
-                    .replaceFirst("\\[mirai:source:.*?]", "");
+            String msg = e.getMessage().contentToString();
             if (msg.isEmpty()) return;
             List<String> msgs = new ArrayList<>(Arrays.asList(msg.split(" ")));
             msgs.removeIf(String::isBlank);

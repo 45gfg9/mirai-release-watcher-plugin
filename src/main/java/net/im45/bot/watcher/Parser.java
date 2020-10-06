@@ -29,6 +29,13 @@ public final class Parser {
         throw new UnsupportedOperationException();
     }
 
+    private static String nullableAsString(JsonElement jsonElement) {
+        return Optional.of(jsonElement)
+                .filter(JsonElement::isJsonPrimitive)
+                .map(JsonElement::getAsString)
+                .orElse("null");
+    }
+
     public static boolean hasErrors(JsonElement jsonElement) {
         return jsonElement.getAsJsonObject().has("errors");
     }
@@ -88,10 +95,7 @@ public final class Parser {
             throw new RuntimeException(e);
         }
 
-        latest.authorName = Optional.of(author.get("name"))
-                .filter(JsonElement::isJsonPrimitive)
-                .map(JsonElement::getAsString)
-                .orElse("null");
+        latest.authorName = nullableAsString(author.get("name"));
         latest.authorLogin = author.get("login").getAsString();
         latest.assets = new ArrayList<>(assetsCount);
         assets.forEach(e -> {

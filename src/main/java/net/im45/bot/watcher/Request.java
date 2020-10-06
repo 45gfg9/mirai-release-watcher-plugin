@@ -108,8 +108,7 @@ public class Request implements Runnable {
 
     public Request() {
         // Avoid NullPointerException
-        this.err = this.debug = s -> {
-        };
+        this.err = this.debug = s -> {};
     }
 
     private static String getFragment() {
@@ -228,12 +227,11 @@ public class Request implements Runnable {
     }
 
     public void setConsumers(Bot bot) {
-        watch.values()
-                .stream()
-                .flatMap(p -> p.second.stream())
-                .distinct()
-//                .mapToLong(Long::longValue) // I'm scared please help me
-                .forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
+        getAllGroupIds().forEach(l -> groupOut.put(l, bot.getGroup(l)::sendMessage));
+    }
+
+    public void clearConsumers() {
+        getAllGroupIds().forEach(l -> groupOut.put(l, s -> {}));
     }
 
     private Set<Long> getAllGroupIds() {
@@ -348,7 +346,7 @@ public class Request implements Runnable {
         }
         if (!Parser.hasData(jsonElement)) {
             err.accept("Error! Received data doesn't have a \"data\" object");
-            debug.accept(String.valueOf(jsonElement));
+            debug.accept(jsonElement.toString());
             return;
         }
 
