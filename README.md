@@ -1,5 +1,12 @@
 # GitHub Release Watcher
 
+## DEPRECATION NOTICE
+This plugin ***no longer works in newer versions of [mirai-console](https://github.com/mamoe/mirai-console).***
+
+A newer version is under development in Kotlin (See [`kt` branch](https://github.com/45gfg9/mirai-release-watcher-plugin/tree/kt)).
+***This could be slow.***
+
+---
 [![CodeFactor](https://www.codefactor.io/repository/github/45gfg9/mirai-release-watcher-plugin/badge)](https://www.codefactor.io/repository/github/45gfg9/mirai-release-watcher-plugin)
 
 *Finally, some good f\*\*king network IOs.*
