@@ -6,32 +6,33 @@ object GrwCmd : CompositeCommand(
 ) {
     @SubCommand
     suspend fun CommandSender.start() {
-
+        sendMessage("Called start")
     }
 
     @SubCommand
     suspend fun CommandSender.stop() {
-
+        sendMessage("Called stop")
     }
 
+    // how to sub-sub-command
     @SubCommand
     suspend fun CommandSender.setToken(token: String) {
-        GrwSetting.token = token
+        GrwSettings.token = token
     }
 
     @SubCommand
     suspend fun CommandSender.setInterval(interval: Int) {
-        GrwSetting.interval = interval
+        GrwSettings.interval = interval
     }
 
     @SubCommand
     suspend fun CommandSender.setTimeout(timeout: Int) {
-        GrwSetting.timeout = timeout
+        GrwSettings.timeout = timeout
     }
 
     @SubCommand
     suspend fun CommandSender.setAutostart(autostart: Boolean) {
-        GrwSetting.autostart = autostart
+        GrwSettings.autostart = autostart
     }
 }
 
@@ -40,7 +41,7 @@ object WatchReleaseCmd : SimpleCommand(
     description = "Watch repositories"
 ) {
     @Handler
-    suspend fun UserCommandSender.handle(vararg args: String) {
+    suspend fun UserCommandSender.watch(args: String) {
     }
 }
 
@@ -49,7 +50,7 @@ object UnwatchReleaseCmd : SimpleCommand(
     description = "Unwatch repositories"
 ) {
     @Handler
-    suspend fun UserCommandSender.handle(vararg args: String) {
+    suspend fun UserCommandSender.unwatch(args: String) {
     }
 }
 
@@ -58,6 +59,6 @@ object WatchListCmd : SimpleCommand(
     description = "List watched repositories"
 ) {
     @Handler
-    suspend fun UserCommandSender.handle() {
+    suspend fun UserCommandSender.list() {
     }
 }

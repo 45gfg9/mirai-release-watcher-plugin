@@ -1,3 +1,6 @@
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RepoId(
     val owner: String,
     val name: String

@@ -16,7 +16,7 @@ object Watcher : KotlinPlugin(
     override fun onEnable() {
         super.onEnable()
 
-        GrwSetting.reload()
+        GrwSettings.reload()
         GrwWatches.reload()
 
         GrwCmd.register()
