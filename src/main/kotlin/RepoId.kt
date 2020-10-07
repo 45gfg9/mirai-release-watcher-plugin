@@ -6,12 +6,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-@Serializable(with = RepoId.Companion::class)
+@Serializable(with = RepoId.Serializer::class)
 data class RepoId(
     val owner: String,
     val name: String
 ) {
-    companion object : KSerializer<RepoId> {
+    companion object {
         private const val IDENTIFIER = "[A-Za-z0-9-_]+"
         private val ID = Regex("^($IDENTIFIER)/($IDENTIFIER)$")
         private val SSH = Regex("^git@github\\.com:($IDENTIFIER)/($IDENTIFIER)\\.git$")
@@ -29,9 +29,13 @@ data class RepoId(
 
             return RepoId(owner, name)
         }
+    }
 
+    object Serializer : KSerializer<RepoId> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("RepoId", PrimitiveKind.STRING)
+
         override fun serialize(encoder: Encoder, value: RepoId) = encoder.encodeString(value.toString())
+
         override fun deserialize(decoder: Decoder): RepoId = parse(decoder.decodeString())
     }
 
