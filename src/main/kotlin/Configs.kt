@@ -5,12 +5,12 @@ import net.mamoe.mirai.console.data.value
 class GrwData : AutoSavePluginData("data")
 
 object GrwSettings : AutoSavePluginConfig("settings") {
-    var token by value("unset")
-    var interval by value(30 * 1000)
-    var timeout by value(15 * 1000)
-    var autostart by value(false)
+    var token: String by value("unset")
+    var interval: Int by value(30 * 1000)
+    var timeout: Int by value(15 * 1000)
+    var autostart: Boolean by value(false)
 }
 
 object GrwWatches : AutoSavePluginConfig("watches") {
-    val watches: MutableMap<RepoId, Unit> by value()
+    val watches: MutableMap<RepoId, String> by value(HashMap())
 }

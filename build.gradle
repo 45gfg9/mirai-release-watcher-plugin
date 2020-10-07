@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'net.im45.bot'
-version = '1.0-alpha-01'
+version = '1.0.0-dev01'
 
 repositories {
     maven { url 'https://mirrors.huaweicloud.com/repository/maven' }

@@ -6,12 +6,12 @@ object GrwCmd : CompositeCommand(
 ) {
     @SubCommand
     suspend fun CommandSender.start() {
-        sendMessage("Called start")
+        TODO()
     }
 
     @SubCommand
     suspend fun CommandSender.stop() {
-        sendMessage("Called stop")
+        TODO()
     }
 
     // how to sub-sub-command
@@ -42,6 +42,7 @@ object WatchReleaseCmd : SimpleCommand(
 ) {
     @Handler
     suspend fun UserCommandSender.watch(args: String) {
+        TODO()
     }
 }
 
@@ -51,6 +52,7 @@ object UnwatchReleaseCmd : SimpleCommand(
 ) {
     @Handler
     suspend fun UserCommandSender.unwatch(args: String) {
+        TODO()
     }
 }
 
@@ -60,5 +62,6 @@ object WatchListCmd : SimpleCommand(
 ) {
     @Handler
     suspend fun UserCommandSender.list() {
+        TODO()
     }
 }
