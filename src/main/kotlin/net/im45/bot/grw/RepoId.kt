@@ -1,3 +1,5 @@
+package net.im45.bot.grw
+
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -32,7 +34,7 @@ data class RepoId(
     }
 
     object Serializer : KSerializer<RepoId> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("RepoId", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("net.im45.bot.grw.RepoId", PrimitiveKind.STRING)
 
         override fun serialize(encoder: Encoder, value: RepoId) = encoder.encodeString(value.toString())
 

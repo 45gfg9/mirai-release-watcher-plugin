@@ -1,4 +1,8 @@
-import net.mamoe.mirai.console.command.*
+package net.im45.bot.grw
+
+import net.mamoe.mirai.console.command.CommandSender
+import net.mamoe.mirai.console.command.CompositeCommand
+import net.mamoe.mirai.console.command.SimpleCommand
 
 object GrwCmd : CompositeCommand(
     Watcher, "grw",

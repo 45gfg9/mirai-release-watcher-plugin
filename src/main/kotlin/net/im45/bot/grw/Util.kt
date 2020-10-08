@@ -1,3 +1,5 @@
+package net.im45.bot.grw
+
 import org.jetbrains.annotations.Contract
 import kotlin.math.log10
 import kotlin.math.pow

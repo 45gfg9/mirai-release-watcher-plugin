@@ -1,3 +1,5 @@
+package net.im45.bot.grw
+
 class RepoIdFormatException : IllegalArgumentException {
     constructor() : super()
     constructor(s: String) : super(s)
