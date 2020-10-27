@@ -1,4 +1,4 @@
-package net.im45.bot.grw
+package net.im45.bot.grw.github
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -7,6 +7,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import net.im45.bot.grw.RepoIdFormatException
+import kotlin.reflect.jvm.jvmName
 
 @Serializable(with = RepoId.Serializer::class)
 data class RepoId(
@@ -15,8 +17,14 @@ data class RepoId(
 ) {
     companion object {
         private const val IDENTIFIER = "[A-Za-z0-9-_]+"
+
+        @JvmStatic
         private val ID = Regex("^($IDENTIFIER)/($IDENTIFIER)$")
+
+        @JvmStatic
         private val SSH = Regex("^git@github\\.com:($IDENTIFIER)/($IDENTIFIER)\\.git$")
+
+        @JvmStatic
         private val HTTPS = Regex("^https://github\\.com/($IDENTIFIER)/($IDENTIFIER)(?:\\.git)?$")
 
         @JvmStatic
@@ -34,7 +42,7 @@ data class RepoId(
     }
 
     object Serializer : KSerializer<RepoId> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("net.im45.bot.grw.RepoId", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(RepoId::class.jvmName, PrimitiveKind.STRING)
 
         override fun serialize(encoder: Encoder, value: RepoId) = encoder.encodeString(value.toString())
 

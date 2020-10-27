@@ -1,5 +1,6 @@
 package net.im45.bot.grw
 
+import net.im45.bot.grw.github.RepoId
 import org.jetbrains.annotations.Contract
 import kotlin.math.log10
 import kotlin.math.pow

@@ -2,7 +2,7 @@ package net.im45.bot.grw
 
 import com.google.auto.service.AutoService
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
-import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregisterAllCommands
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.plugin.jvm.JvmPlugin
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
@@ -29,6 +29,9 @@ object Watcher : KotlinPlugin(
     override fun onDisable() {
         super.onDisable()
 
-        unregisterAllCommands()
+        GrwCmd.unregister()
+        WatchReleaseCmd.unregister()
+        UnwatchReleaseCmd.unregister()
+        WatchListCmd.unregister()
     }
 }
