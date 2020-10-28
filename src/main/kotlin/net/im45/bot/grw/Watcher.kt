@@ -9,10 +9,10 @@ import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 
 @AutoService(JvmPlugin::class)
 object Watcher : KotlinPlugin(
-    JvmPluginDescription(
-        "net.im45.bot.grw",
-        "1.0.0-dev01"
-    )
+        JvmPluginDescription(
+                "net.im45.bot.grw",
+                "1.0.0-dev01"
+        )
 ) {
     override fun onEnable() {
         super.onEnable()

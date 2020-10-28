@@ -1,13 +1,13 @@
 package net.im45.bot.grw.github
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal data class Release(
         val name: String,
         val url: String,
         val tagName: String,
-        val createdAt: LocalDateTime,
-        val publishedAt: LocalDateTime,
+        val createdAt: ZonedDateTime,
+        val publishedAt: ZonedDateTime,
         val author: Author,
         val releaseAssets: List<Asset>
 ) {

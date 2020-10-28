@@ -9,8 +9,8 @@ import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.SimpleCommand
 
 object GrwCmd : CompositeCommand(
-    Watcher, "grw",
-    description = "GitHub Release Watcher"
+        Watcher, "grw",
+        description = "GitHub Release Watcher"
 ) {
     @SubCommand
     suspend fun CommandSender.start() {
@@ -62,8 +62,8 @@ object GrwCmd : CompositeCommand(
 }
 
 object WatchReleaseCmd : SimpleCommand(
-    Watcher, "watch-release",
-    description = "Watch repositories"
+        Watcher, "watch-release",
+        description = "Watch repositories"
 ) {
     @Handler
     suspend fun CommandSender.watch(args: String) {
@@ -72,8 +72,8 @@ object WatchReleaseCmd : SimpleCommand(
 }
 
 object UnwatchReleaseCmd : SimpleCommand(
-    Watcher, "unwatch-release",
-    description = "Unwatch repositories"
+        Watcher, "unwatch-release",
+        description = "Unwatch repositories"
 ) {
     @Handler
     suspend fun CommandSender.unwatch(args: String) {
@@ -82,8 +82,8 @@ object UnwatchReleaseCmd : SimpleCommand(
 }
 
 object WatchListCmd : SimpleCommand(
-    Watcher, "watch-list",
-    description = "List watched repositories"
+        Watcher, "watch-list",
+        description = "List watched repositories"
 ) {
     @Handler
     suspend fun CommandSender.list() {

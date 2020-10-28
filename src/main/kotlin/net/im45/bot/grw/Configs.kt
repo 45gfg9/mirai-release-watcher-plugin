@@ -20,5 +20,5 @@ object GrwSettings : AutoSavePluginConfig("settings") {
 }
 
 object GrwWatches : AutoSavePluginConfig("watches") {
-    val watches: MutableMap<RepoId, String> by value(HashMap())
+    val watches: MutableMap<RepoId, Pair<String, Set<Long>>> by value(mutableMapOf())
 }

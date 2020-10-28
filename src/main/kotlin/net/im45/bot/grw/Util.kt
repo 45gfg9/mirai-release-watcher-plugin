@@ -21,6 +21,6 @@ fun humanReadableSize(bytes: Long): String {
 @Contract(pure = true)
 fun toLegalId(repoId: RepoId): String {
     return repoId.toString()
-        .replaceFirst(Regex("^(\\d)"), "_$1")
-        .replace(Regex("[-/.]"), "_")
+            .replaceFirst(Regex("^(\\d)"), "_$1")
+            .replace(Regex("[-/.]"), "_")
 }

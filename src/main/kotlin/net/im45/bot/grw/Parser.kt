@@ -4,8 +4,11 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import net.im45.bot.grw.github.Release
 import net.im45.bot.grw.github.RepoId
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+
+private fun JsonElement.nullableAsString() = if (isJsonNull) null.toString() else asString
 
 internal object Parser {
     private val FMT = DateTimeFormatter.ISO_DATE_TIME
@@ -37,7 +40,7 @@ internal object Parser {
         val assetsCount = assetsConn.get("totalCount").asInt
         val assets = assetsConn.getAsJsonArray("nodes")
 
-        val assetsList = mutableListOf<Release.Asset>()
+        val assetsList = ArrayList<Release.Asset>(assetsCount)
         assets.forEach {
             val assetObj = it.asJsonObject
             val asset = Release.Asset(
@@ -52,13 +55,41 @@ internal object Parser {
                 release.get("name").asString,
                 release.get("url").asString,
                 release.get("tagName").asString,
-                LocalDateTime.parse(release.get("createdAt").asString, FMT),
-                LocalDateTime.parse(release.get("publishedAt").asString, FMT),
+                OffsetDateTime.parse(release.get("createdAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
+                OffsetDateTime.parse(release.get("publishedAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
                 Release.Author(
-                        release.get("name").asString,
-                        release.get("login").asString
+                        author.get("name").nullableAsString(),
+                        author.get("login").asString
                 ),
                 assetsList
         )
+    }
+
+    fun filterNewVer(ver: MutableMap<RepoId, Pair<String, Set<Long>>>, repos: Map<RepoId, JsonElement>): Map<RepoId, Pair<Release, Set<Long>>> {
+        val map = mutableMapOf<RepoId, Pair<Release, Set<Long>>>()
+        val nonexistent = mutableSetOf<RepoId>()
+
+        ver.forEach { (r, p) ->
+            val release: Release
+            try {
+                release = parseReleases(repos.getValue(r)) ?: let {
+                    ver[r] = "-" to p.second
+                    return@forEach
+                }
+            } catch (e: RepositoryException) {
+                nonexistent.add(r)
+                return@forEach
+            }
+
+            if (release.tagName != p.first) {
+                ver[r] = release.tagName to p.second
+                if (p.first != "?") {
+                    map[r] = release to p.second
+                }
+            }
+        }
+        nonexistent.forEach(ver::remove)
+
+        return map
     }
 }
