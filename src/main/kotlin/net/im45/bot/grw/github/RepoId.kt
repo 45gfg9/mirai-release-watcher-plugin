@@ -12,8 +12,8 @@ import kotlin.reflect.jvm.jvmName
 
 @Serializable(with = RepoId.Serializer::class)
 data class RepoId(
-    val owner: String,
-    val name: String
+        val owner: String,
+        val name: String
 ) {
     companion object {
         private const val IDENTIFIER = "[A-Za-z0-9-_]+"
@@ -30,9 +30,9 @@ data class RepoId(
         @JvmStatic
         fun parse(url: String): RepoId {
             val match = ID.find(url)
-                ?: SSH.find(url)
-                ?: HTTPS.find(url)
-                ?: throw RepoIdFormatException.forInputString(url)
+                    ?: SSH.find(url)
+                    ?: HTTPS.find(url)
+                    ?: throw RepoIdFormatException.forInputString(url)
 
             val owner = match.groupValues[1]
             val name = match.groupValues[2]

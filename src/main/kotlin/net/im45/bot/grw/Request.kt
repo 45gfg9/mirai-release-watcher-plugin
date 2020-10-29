@@ -15,7 +15,6 @@ object Request {
     private const val FRAG = "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt publishedAt author {name login} releaseAssets(first: 100) {totalCount nodes {name size downloadUrl}}}}}"
     private const val FMT = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } "
 
-    private val TOKEN_REGEX = Regex("[0-9a-fA-F]{40}")
     private val ENDPOINT = URL("https://api.github.com/graphql")
 
     private fun buildQueryString(repos: Set<RepoId>): String {
@@ -27,6 +26,20 @@ object Request {
         }
         sb.append("} ").append(FRAG)
         return sb.toString()
+    }
+
+    suspend fun verifyToken(token: String?): Boolean {
+        if (token == null) return false
+        HttpClient {
+            install(Auth) {
+                bearer {
+                    this.token = token
+                }
+            }
+        }.use {
+            val value = runCatching { it.post<Unit>(ENDPOINT) }.getOrNull()
+            return value != null
+        }
     }
 
     suspend fun request() {

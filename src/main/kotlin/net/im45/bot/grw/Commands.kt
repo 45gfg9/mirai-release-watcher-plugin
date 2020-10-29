@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.SimpleCommand
@@ -12,6 +13,8 @@ object GrwCmd : CompositeCommand(
         Watcher, "grw",
         description = "GitHub Release Watcher"
 ) {
+    private val TOKEN_REGEX = Regex("[0-9a-fA-F]{40}")
+
     @SubCommand
     suspend fun CommandSender.start() {
         if (GrwData.grwJob == null) {
@@ -40,9 +43,22 @@ object GrwCmd : CompositeCommand(
 
     // how to sub-sub-command
     @SubCommand
+    suspend fun CommandSender.setBot(id: Long) {
+        if (id != 0L && Bot.getInstanceOrNull(id) == null) {
+            sendMessage("Bot not found")
+            return
+        }
+        GrwSettings.botId = id
+    }
+
+    @SubCommand
     suspend fun CommandSender.setToken(token: String) {
-        GrwSettings.token = token
-        TODO("Verify token")
+        if (!TOKEN_REGEX.matches(token)) {
+            sendMessage("Wrong format token")
+            return
+        }
+        GrwData.tokenBuf = token
+        Request.verifyToken(token)
     }
 
     @SubCommand
