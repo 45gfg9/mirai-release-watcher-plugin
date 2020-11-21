@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    val miraiCore = "1.3.2"
-    val miraiConsole = "1.0-RC-dev-32"
+    val miraiCore = "1.3.1"
+    val miraiConsole = "1.0-RC-1"
     val autoService = "1.0-rc7"
 
     implementation("io.ktor:ktor-client-auth:1.4.1")

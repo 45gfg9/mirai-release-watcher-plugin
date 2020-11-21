@@ -4,10 +4,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.im45.bot.grw.github.RepoId
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.SimpleCommand
+import net.mamoe.mirai.console.command.UserCommandSender
 
 object GrwCmd : CompositeCommand(
         Watcher, "grw",
@@ -49,6 +51,7 @@ object GrwCmd : CompositeCommand(
             return
         }
         GrwSettings.botId = id
+        sendMessage("Bot set")
     }
 
     @SubCommand
@@ -57,8 +60,11 @@ object GrwCmd : CompositeCommand(
             sendMessage("Wrong format token")
             return
         }
-        GrwData.tokenBuf = token
-        Request.verifyToken(token)
+        if (Request.verifyToken(token)) {
+            sendMessage("Token set")
+        } else {
+            sendMessage("Invalid token")
+        }
     }
 
     @SubCommand
@@ -82,8 +88,16 @@ object WatchReleaseCmd : SimpleCommand(
         description = "Watch repositories"
 ) {
     @Handler
-    suspend fun CommandSender.watch(args: String) {
-        TODO()
+    suspend fun UserCommandSender.watch(vararg args: String) {
+        var cnt = 0
+        for (arg in args)
+            try {
+                val repo = RepoId.parse(arg)
+                GrwWatches.watches[repo] = "?" to setOf(subject.id)
+                cnt++
+            } catch (e: RepoIdFormatException) {
+            }
+        sendMessage("Added $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }
 }
 
@@ -92,8 +106,15 @@ object UnwatchReleaseCmd : SimpleCommand(
         description = "Unwatch repositories"
 ) {
     @Handler
-    suspend fun CommandSender.unwatch(args: String) {
-        TODO()
+    suspend fun UserCommandSender.unwatch(vararg args: String) {
+        var cnt = 0
+        for (arg in args)
+            try {
+                val repo = RepoId.parse(arg)
+                if (GrwWatches.watches.remove(repo) != null) cnt++
+            } catch (e: RepoIdFormatException) {
+            }
+        sendMessage("Removed $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }
 }
 

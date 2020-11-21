@@ -28,18 +28,22 @@ object Request {
         return sb.toString()
     }
 
-    suspend fun verifyToken(token: String?): Boolean {
-        if (token == null) return false
-        HttpClient {
+    suspend fun verifyToken(token: String): Boolean {
+        GrwData.tokenBuf = token
+        val ret = HttpClient {
             install(Auth) {
                 bearer {
                     this.token = token
                 }
             }
         }.use {
-            val value = runCatching { it.post<Unit>(ENDPOINT) }.getOrNull()
-            return value != null
+            runCatching { it.post<Unit>(ENDPOINT) }.getOrNull() != null
         }
+        if (ret) {
+            GrwData.tokenBuf = null
+            GrwSettings.token = token
+        }
+        return ret
     }
 
     suspend fun request() {
