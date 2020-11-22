@@ -95,7 +95,7 @@ object WatchReleaseCmd : SimpleCommand(
                 val repo = RepoId.parse(arg)
                 GrwWatches.watches[repo] = "?" to setOf(subject.id)
                 cnt++
-            } catch (e: RepoIdFormatException) {
+            } catch (ignored: RepoIdFormatException) {
             }
         sendMessage("Added $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }
@@ -112,7 +112,7 @@ object UnwatchReleaseCmd : SimpleCommand(
             try {
                 val repo = RepoId.parse(arg)
                 if (GrwWatches.watches.remove(repo) != null) cnt++
-            } catch (e: RepoIdFormatException) {
+            } catch (ignored: RepoIdFormatException) {
             }
         sendMessage("Removed $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }

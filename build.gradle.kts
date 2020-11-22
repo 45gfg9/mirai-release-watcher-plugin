@@ -11,14 +11,13 @@ group = "net.im45.bot"
 version = "1.0.0-dev01"
 
 repositories {
-    maven("https://maven.aliyun.com/repository/public")
+    maven("http://maven.aliyun.com/repository/public")
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
     val miraiCore = "1.3.1"
-    val miraiConsole = "1.0-RC-1"
+    val miraiConsole = "1.0.0"
     val autoService = "1.0-rc7"
 
     implementation("io.ktor:ktor-client-auth:1.4.1")
@@ -29,11 +28,6 @@ dependencies {
     compileOnly("com.google.auto.service:auto-service-annotations:$autoService")
     compileOnly("net.mamoe:mirai-core:$miraiCore")
     compileOnly("net.mamoe:mirai-console:$miraiConsole")
-
-    testImplementation("net.mamoe:mirai-core:$miraiCore")
-    testImplementation("net.mamoe:mirai-console:$miraiConsole")
-//    testImplementation ("net.mamoe:mirai-console-pure:$miraiConsole")
-    testImplementation(kotlin("stdlib"))
 }
 
 kotlin.sourceSets.all {
