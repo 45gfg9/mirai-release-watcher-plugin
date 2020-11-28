@@ -17,8 +17,8 @@ internal object Parser {
 
     fun hasData(jsonElement: JsonElement) = jsonElement.asJsonObject.has("data")
 
-    fun handleError(jsonElement: JsonElement, block: JsonArray.() -> Unit) =
-            jsonElement.asJsonObject.getAsJsonArray("errors").run(block)
+    inline fun handleError(jsonElement: JsonElement, block: JsonElement.(JsonArray) -> Unit) =
+            jsonElement.block(jsonElement.asJsonObject.getAsJsonArray("error"))
 
     fun getRepositories(jsonElement: JsonElement, repos: Set<RepoId>): Map<RepoId, JsonElement> {
         val map = mutableMapOf<RepoId, JsonElement>()

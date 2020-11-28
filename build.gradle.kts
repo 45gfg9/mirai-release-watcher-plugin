@@ -11,13 +11,13 @@ group = "net.im45.bot"
 version = "1.0.0-dev01"
 
 repositories {
-    maven("http://maven.aliyun.com/repository/public")
+    maven("https://maven.aliyun.com/repository/public")
     mavenCentral()
 }
 
 dependencies {
-    val miraiCore = "1.3.1"
-    val miraiConsole = "1.0.0"
+    val miraiCore = "1.3.3"
+    val miraiConsole = "1.0.1"
     val autoService = "1.0-rc7"
 
     implementation("io.ktor:ktor-client-auth:1.4.1")

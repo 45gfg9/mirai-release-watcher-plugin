@@ -12,20 +12,18 @@ import net.im45.bot.grw.ktor.bearer
 import java.net.URL
 
 object Request {
-    private const val FRAG = "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt publishedAt author {name login} releaseAssets(first: 100) {totalCount nodes {name size downloadUrl}}}}}"
-    private const val FMT = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } "
+    private const val FRAGMENT = "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt publishedAt author {name login} releaseAssets(first: 100) {totalCount nodes {name size downloadUrl}}}}}"
+    private const val TEMPLATE = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } "
 
     private val ENDPOINT = URL("https://api.github.com/graphql")
 
     private fun buildQueryString(repos: Set<RepoId>): String {
-        if (repos.isEmpty()) throw IllegalArgumentException("Can't build query from an empty set")
 
-        val sb = StringBuilder("{")
-        for (repo in repos) {
-            sb.append(String.format(FMT, toLegalId(repo), repo.name, repo.owner))
-        }
-        sb.append("} ").append(FRAG)
-        return sb.toString()
+        return if (repos.isEmpty()) buildString {
+            append("{")
+            repos.forEach { append(TEMPLATE.format(toLegalId(it), it.name, it.owner)) }
+            append("} ", FRAGMENT)
+        } else throw IllegalArgumentException("Can't build query from an empty set")
     }
 
     suspend fun verifyToken(token: String): Boolean {
@@ -76,8 +74,8 @@ object Request {
 
         Parser.handleError(jsonElement) {
             Watcher.logger.error("Error received from upstream")
-            Watcher.logger.error(toString())
-            Watcher.logger.debug(jsonElement.toString())
+            Watcher.logger.error(it.toString())
+            Watcher.logger.debug(toString())
         }
 
     }
