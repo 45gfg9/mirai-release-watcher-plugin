@@ -15,7 +15,7 @@ import java.net.URL
 
 object Request {
     private const val FRAGMENT =
-        "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt publishedAt author {name login} releaseAssets(first: 100) {totalCount nodes {name size downloadUrl}}}}}"
+        "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt updatedAt author {name login} releaseAssets(first: 100) {nodes {name size downloadUrl}}}}}"
     private const val TEMPLATE = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } "
 
     private val ENDPOINT = URL("https://api.github.com/graphql")

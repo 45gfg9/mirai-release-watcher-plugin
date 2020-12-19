@@ -5,9 +5,7 @@ class RepoIdFormatException : IllegalArgumentException {
     constructor(s: String) : super(s)
 
     companion object {
-        fun forInputString(url: String): RepoIdFormatException {
-            return RepoIdFormatException("For input string: \"$url\"")
-        }
+        fun forInputString(url: String) = RepoIdFormatException("For input string: \"$url\"")
     }
 }
 

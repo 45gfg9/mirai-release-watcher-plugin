@@ -50,4 +50,8 @@ data class RepoId(
     }
 
     override fun toString(): String = "$owner/$name"
+
+    fun toLegalId() = toString()
+        .replaceFirst(Regex("^(\\d)"), "_$1")
+        .replace(Regex("[-/.]"), "_")
 }

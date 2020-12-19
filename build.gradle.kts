@@ -20,7 +20,7 @@ dependencies {
     val miraiConsole = "2.0-M1"
     val autoService = "1.0-rc7"
 
-    implementation("io.ktor:ktor-client-auth:1.4.2")
+    implementation("io.ktor:ktor-client-auth:1.4.3")
     implementation("com.google.code.gson:gson:2.8.6")
 
     kapt("com.google.auto.service:auto-service:$autoService")
@@ -29,9 +29,9 @@ dependencies {
     compileOnly("net.mamoe:mirai-core:$miraiCore")
     compileOnly("net.mamoe:mirai-console:$miraiConsole")
 
-    testCompileOnly("io.ktor:ktor-client-cio:1.4.2")
-    testCompileOnly("net.mamoe:mirai-core:$miraiCore")
-    testCompileOnly("net.mamoe:mirai-console:$miraiConsole")
+    testImplementation("io.ktor:ktor-client-cio:1.4.2")
+    testImplementation("net.mamoe:mirai-core:$miraiCore")
+    testImplementation("net.mamoe:mirai-console:$miraiConsole")
 }
 
 kotlin.sourceSets.all {

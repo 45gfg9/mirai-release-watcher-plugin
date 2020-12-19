@@ -7,10 +7,13 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+private typealias RMap<T> = Map<RepoId, Pair<T, Set<Long>>>
+private typealias RMutableMap<T> = MutableMap<RepoId, Pair<T, Set<Long>>>
 
 internal object Parser {
+
     private val FMT = DateTimeFormatter.ISO_DATE_TIME
-    private fun JsonElement.nullableAsString() = if (isJsonNull) null.toString() else asString
+    private val JsonElement.nullableAsString get() = if (isJsonNull) null.toString() else asString
 
     fun hasErrors(jsonElement: JsonElement) = jsonElement.asJsonObject.has("errors")
 
@@ -33,28 +36,28 @@ internal object Parser {
         val release = releaseNode.get(0).asJsonObject
         val author = release.getAsJsonObject("author")
         val assetsConn = release.getAsJsonObject("releaseAssets")
-        val assetsCount = assetsConn.get("totalCount").asInt
         val assets = assetsConn.getAsJsonArray("nodes")
 
-        val assetsList = ArrayList<Release.Asset>(assetsCount)
-        assets.forEach {
-            val assetObj = it.asJsonObject
-            val asset = Release.Asset(
-                assetObj.get("name").asString,
-                assetObj.get("size").asLong,
-                assetObj.get("downloadUrl").asString
-            )
-            assetsList.add(asset)
-        }
+        val assetsList = assets.map {
+            it.asJsonObject.run {
+                Release.Asset(
+                    get("name").asString,
+                    get("size").asLong,
+                    get("downloadUrl").asString
+                )
+            }
+        }.toList()
 
         return Release(
-            release.get("name").asString,
+            release.get("name").nullableAsString,
             release.get("url").asString,
             release.get("tagName").asString,
             OffsetDateTime.parse(release.get("createdAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
-            OffsetDateTime.parse(release.get("publishedAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
+            OffsetDateTime.parse(release.get("updatedAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
             Release.Author(
-                author.get("name").nullableAsString(),
+                // Strictly speaking, `Author` is marked nullable in GitHub API docs
+                // But why..? Can you get a release out of thin air?
+                author.get("name").nullableAsString,
                 author.get("login").asString
             ),
             assetsList
@@ -62,10 +65,10 @@ internal object Parser {
     }
 
     fun filterNewVer(
-        ver: MutableMap<RepoId, Pair<String, Set<Long>>>,
+        ver: RMutableMap<String>,
         repos: Map<RepoId, JsonElement>
-    ): Map<RepoId, Pair<Release, Set<Long>>> {
-        val map = mutableMapOf<RepoId, Pair<Release, Set<Long>>>()
+    ): Pair<RMap<Release>, Set<RepoId>> {
+        val map: RMutableMap<Release> = mutableMapOf()
         val nonexistent = mutableSetOf<RepoId>()
 
         ver.forEach { (r, p) ->
@@ -87,8 +90,7 @@ internal object Parser {
                 }
             }
         }
-        nonexistent.forEach(ver::remove)
 
-        return map
+        return map to nonexistent
     }
 }

@@ -41,8 +41,9 @@ object GrwCmd : CompositeCommand(
         }
     }
 
-    // how to sub-sub-command
-    @SubCommand
+    // sub-sub-command (grass
+    // https://github.com/mamoe/mirai-console/issues/237
+    @SubCommand("set bot")
     suspend fun CommandSender.setBot(id: Long) {
         if (id != 0L && Bot.getInstanceOrNull(id) == null) {
             sendMessage("Bot not found")
@@ -52,7 +53,7 @@ object GrwCmd : CompositeCommand(
         sendMessage("Bot set")
     }
 
-    @SubCommand
+    @SubCommand("set token")
     suspend fun CommandSender.setToken(token: String) {
         if (!(TOKEN_REGEX matches token)) {
             sendMessage("Wrong format token")
@@ -65,17 +66,17 @@ object GrwCmd : CompositeCommand(
         }
     }
 
-    @SubCommand
+    @SubCommand("set interval")
     suspend fun CommandSender.setInterval(interval: Long) {
         GrwSettings.interval = interval
     }
 
-    @SubCommand
+    @SubCommand("set timeout")
     suspend fun CommandSender.setTimeout(timeout: Long) {
         GrwSettings.timeout = timeout
     }
 
-    @SubCommand
+    @SubCommand("set autostart")
     suspend fun CommandSender.setAutostart(autostart: Boolean) {
         GrwSettings.autostart = autostart
     }
