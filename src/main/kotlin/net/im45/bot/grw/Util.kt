@@ -9,8 +9,7 @@ private val SUFFIXES = charArrayOf('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 
 
 @Contract(pure = true)
 fun humanReadableSize(bytes: Long): String {
-    if (bytes < 0)
-        throw IllegalArgumentException("Negative size")
+    require(bytes >= 0) { "Negative size" }
 
     val scale = (log10(bytes.toDouble()) / 3).toInt()
 
@@ -18,9 +17,6 @@ fun humanReadableSize(bytes: Long): String {
     return String.format("%.2f", bytes / 1e3.pow(scale)) + SUFFIXES[scale - 1] + "B"
 }
 
-@Contract(pure = true)
-fun toLegalId(repoId: RepoId): String {
-    return repoId.toString()
-            .replaceFirst(Regex("^(\\d)"), "_$1")
-            .replace(Regex("[-/.]"), "_")
-}
+fun RepoId.toLegalId(): String = toString()
+    .replaceFirst(Regex("^(\\d)"), "_$1")
+    .replace(Regex("[-/.]"), "_")

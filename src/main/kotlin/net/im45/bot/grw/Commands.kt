@@ -12,24 +12,22 @@ import net.mamoe.mirai.console.command.SimpleCommand
 import net.mamoe.mirai.console.command.UserCommandSender
 
 object GrwCmd : CompositeCommand(
-        Watcher, "grw",
-        description = "GitHub Release Watcher"
+    Watcher, "grw",
+    description = "GitHub Release Watcher"
 ) {
     private val TOKEN_REGEX = Regex("[0-9a-fA-F]{40}")
 
     @SubCommand
     suspend fun CommandSender.start() {
-        if (GrwData.grwJob == null) {
+        sendMessage(GrwData.grwJob?.run { "Already running!" } ?: run {
             GrwData.grwJob = GlobalScope.launch(Dispatchers.IO) {
                 while (true) {
                     delay(GrwSettings.interval)
                     Request.request()
                 }
             }
-            sendMessage("Started running.")
-        } else {
-            sendMessage("Already running!")
-        }
+            "Started running."
+        })
     }
 
     @SubCommand
@@ -56,7 +54,7 @@ object GrwCmd : CompositeCommand(
 
     @SubCommand
     suspend fun CommandSender.setToken(token: String) {
-        if (!TOKEN_REGEX.matches(token)) {
+        if (!(TOKEN_REGEX matches token)) {
             sendMessage("Wrong format token")
             return
         }
@@ -84,43 +82,41 @@ object GrwCmd : CompositeCommand(
 }
 
 object WatchReleaseCmd : SimpleCommand(
-        Watcher, "watch-release",
-        description = "Watch repositories"
+    Watcher, "watch-release",
+    description = "Watch repositories"
 ) {
     @Handler
     suspend fun UserCommandSender.watch(vararg args: String) {
         var cnt = 0
         for (arg in args)
-            try {
+            runCatching {
                 val repo = RepoId.parse(arg)
                 GrwWatches.watches[repo] = "?" to setOf(subject.id)
                 cnt++
-            } catch (ignored: RepoIdFormatException) {
             }
         sendMessage("Added $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }
 }
 
 object UnwatchReleaseCmd : SimpleCommand(
-        Watcher, "unwatch-release",
-        description = "Unwatch repositories"
+    Watcher, "unwatch-release",
+    description = "Unwatch repositories"
 ) {
     @Handler
     suspend fun UserCommandSender.unwatch(vararg args: String) {
         var cnt = 0
         for (arg in args)
-            try {
+            runCatching {
                 val repo = RepoId.parse(arg)
                 if (GrwWatches.watches.remove(repo) != null) cnt++
-            } catch (ignored: RepoIdFormatException) {
             }
         sendMessage("Removed $cnt repositor${if (cnt == 1) "y" else "ies"}")
     }
 }
 
 object WatchListCmd : SimpleCommand(
-        Watcher, "watch-list",
-        description = "List watched repositories"
+    Watcher, "watch-list",
+    description = "List watched repositories"
 ) {
     @Handler
     suspend fun CommandSender.list() {

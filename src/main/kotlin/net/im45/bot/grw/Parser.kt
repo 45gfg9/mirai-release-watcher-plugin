@@ -1,6 +1,5 @@
 package net.im45.bot.grw
 
-import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import net.im45.bot.grw.github.Release
 import net.im45.bot.grw.github.RepoId
@@ -8,22 +7,19 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private fun JsonElement.nullableAsString() = if (isJsonNull) null.toString() else asString
 
 internal object Parser {
     private val FMT = DateTimeFormatter.ISO_DATE_TIME
+    private fun JsonElement.nullableAsString() = if (isJsonNull) null.toString() else asString
 
     fun hasErrors(jsonElement: JsonElement) = jsonElement.asJsonObject.has("errors")
 
     fun hasData(jsonElement: JsonElement) = jsonElement.asJsonObject.has("data")
 
-    inline fun handleError(jsonElement: JsonElement, block: JsonElement.(JsonArray) -> Unit) =
-            jsonElement.block(jsonElement.asJsonObject.getAsJsonArray("error"))
-
     fun getRepositories(jsonElement: JsonElement, repos: Set<RepoId>): Map<RepoId, JsonElement> {
         val map = mutableMapOf<RepoId, JsonElement>()
         val data = jsonElement.asJsonObject.getAsJsonObject("data")
-        repos.forEach { map[it] = data.get(toLegalId(it)) }
+        repos.forEach { map[it] = data.get(it.toLegalId()) }
         return map
     }
 
@@ -31,8 +27,8 @@ internal object Parser {
         if (jsonElement.isJsonNull) throw RepositoryException("Repository is null")
 
         val releaseNode = jsonElement.asJsonObject
-                .getAsJsonObject("releases")
-                .getAsJsonArray("nodes")
+            .getAsJsonObject("releases")
+            .getAsJsonArray("nodes")
         if (releaseNode.size() == 0) return null
         val release = releaseNode.get(0).asJsonObject
         val author = release.getAsJsonObject("author")
@@ -44,28 +40,31 @@ internal object Parser {
         assets.forEach {
             val assetObj = it.asJsonObject
             val asset = Release.Asset(
-                    assetObj.get("name").asString,
-                    assetObj.get("size").asLong,
-                    assetObj.get("downloadUrl").asString
+                assetObj.get("name").asString,
+                assetObj.get("size").asLong,
+                assetObj.get("downloadUrl").asString
             )
             assetsList.add(asset)
         }
 
         return Release(
-                release.get("name").asString,
-                release.get("url").asString,
-                release.get("tagName").asString,
-                OffsetDateTime.parse(release.get("createdAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
-                OffsetDateTime.parse(release.get("publishedAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
-                Release.Author(
-                        author.get("name").nullableAsString(),
-                        author.get("login").asString
-                ),
-                assetsList
+            release.get("name").asString,
+            release.get("url").asString,
+            release.get("tagName").asString,
+            OffsetDateTime.parse(release.get("createdAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
+            OffsetDateTime.parse(release.get("publishedAt").asString, FMT).atZoneSameInstant(ZoneId.systemDefault()),
+            Release.Author(
+                author.get("name").nullableAsString(),
+                author.get("login").asString
+            ),
+            assetsList
         )
     }
 
-    fun filterNewVer(ver: MutableMap<RepoId, Pair<String, Set<Long>>>, repos: Map<RepoId, JsonElement>): Map<RepoId, Pair<Release, Set<Long>>> {
+    fun filterNewVer(
+        ver: MutableMap<RepoId, Pair<String, Set<Long>>>,
+        repos: Map<RepoId, JsonElement>
+    ): Map<RepoId, Pair<Release, Set<Long>>> {
         val map = mutableMapOf<RepoId, Pair<Release, Set<Long>>>()
         val nonexistent = mutableSetOf<RepoId>()
 
