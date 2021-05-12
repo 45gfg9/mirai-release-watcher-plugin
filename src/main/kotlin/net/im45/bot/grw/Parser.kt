@@ -32,18 +32,7 @@ internal object Parser {
         if (releaseNode.size() == 0) return null
         val release = releaseNode.get(0).asJsonObject
         val author = release.getAsJsonObject("author")
-        val assetsConn = release.getAsJsonObject("releaseAssets")
-        val assets = assetsConn.getAsJsonArray("nodes")
-
-        val assetsList = assets.map {
-            it.asJsonObject.run {
-                Release.Asset(
-                    get("name").asString,
-                    get("size").asLong,
-                    get("downloadUrl").asString
-                )
-            }
-        }.toList()
+        val assets = release.getAsJsonObject("releaseAssets").getAsJsonArray("nodes")
 
         return Release(
             release.get("name").nullableAsString,
@@ -57,7 +46,15 @@ internal object Parser {
                 author.get("name").nullableAsString,
                 author.get("login").asString
             ),
-            assetsList
+            assets.map {
+                it.asJsonObject.run {
+                    Release.Asset(
+                        get("name").asString,
+                        get("size").asLong,
+                        get("downloadUrl").asString
+                    )
+                }
+            }.toList()
         )
     }
 

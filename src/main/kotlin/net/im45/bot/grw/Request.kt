@@ -156,7 +156,7 @@ object Request : Closeable {
                     releaseAssets.forEach {
                         appendLine("--------------------")
                         appendLine("File name: ${it.name}")
-                        appendLine("Size: ${it.sizeString()}")
+                        appendLine("Size: ${it.sizeString}")
                         appendLine("Download URL: ${it.downloadUrl}")
                     }
                 }

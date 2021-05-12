@@ -22,11 +22,11 @@ internal data class Release(
             private val SUFFIXES = charArrayOf('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D')
         }
 
-        internal fun sizeString(): String {
-            val scale = (log10(size.toDouble()) / 3).toInt()
-
-            if (scale == 0) return "${this}B"
-            return String.format("%.2f", size / 1e3.pow(scale)) + SUFFIXES[scale - 1] + "B"
+        internal val sizeString = (log10(size.toDouble()) / 3).toInt().let {
+            if (it == 0)
+                "${size}B"
+            else
+                String.format("%.2f", size / 1e3.pow(it)) + SUFFIXES[it - 1] + "B"
         }
     }
 }
