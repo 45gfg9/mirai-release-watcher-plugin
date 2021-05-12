@@ -1,10 +1,9 @@
 plugins {
-    val kt = "1.4.20"
+    val kt = "1.4.31"
 
     kotlin("jvm") version kt
-    kotlin("kapt") version kt
     kotlin("plugin.serialization") version kt
-    id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("net.mamoe.mirai-console") version "2.6.4"
 }
 
 group = "net.im45.bot"
@@ -16,29 +15,9 @@ repositories {
 }
 
 dependencies {
-    val miraiCore = "2.0-M1"
-    val miraiConsole = "2.0-M1"
-    val autoService = "1.0-rc7"
+    val ktor = "1.5.4"
 
-    implementation("io.ktor:ktor-client-auth:1.4.3")
     implementation("com.google.code.gson:gson:2.8.6")
-
-    kapt("com.google.auto.service:auto-service:$autoService")
-    compileOnly(kotlin("stdlib"))
-    compileOnly("com.google.auto.service:auto-service-annotations:$autoService")
-    compileOnly("net.mamoe:mirai-core:$miraiCore")
-    compileOnly("net.mamoe:mirai-console:$miraiConsole")
-
-    testImplementation("io.ktor:ktor-client-cio:1.4.2")
-    testImplementation("net.mamoe:mirai-core:$miraiCore")
-    testImplementation("net.mamoe:mirai-console:$miraiConsole")
-}
-
-kotlin.sourceSets.all {
-    languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
-}
-
-kotlin.target.compilations.all {
-    kotlinOptions.freeCompilerArgs += "-Xjvm-default=enable"
-    kotlinOptions.jvmTarget = "11"
+    implementation("io.ktor:ktor-client-auth:$ktor")
+    implementation("io.ktor:ktor-client-cio:$ktor")
 }

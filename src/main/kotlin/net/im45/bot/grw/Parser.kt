@@ -7,9 +7,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private typealias RMap<T> = Map<RepoId, Pair<T, Set<Long>>>
-private typealias RMutableMap<T> = MutableMap<RepoId, Pair<T, Set<Long>>>
-
 internal object Parser {
 
     private val FMT = DateTimeFormatter.ISO_DATE_TIME

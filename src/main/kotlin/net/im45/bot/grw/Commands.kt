@@ -1,11 +1,6 @@
 package net.im45.bot.grw
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.im45.bot.grw.github.RepoId
-import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.SimpleCommand
@@ -15,44 +10,22 @@ object GrwCmd : CompositeCommand(
     Watcher, "grw",
     description = "GitHub Release Watcher"
 ) {
-    private val TOKEN_REGEX = Regex("[0-9a-fA-F]{40}")
+    private val TOKEN_REGEX = Regex("^[0-9a-fA-F]{40}$")
 
     @SubCommand
-    suspend fun CommandSender.start() {
-        sendMessage(GrwData.grwJob?.run { "Already running!" } ?: run {
-            GrwData.grwJob = GlobalScope.launch(Dispatchers.IO) {
-                while (true) {
-                    delay(GrwSettings.interval)
-                    Request.request()
-                }
-            }
-            "Started running."
-        })
+    suspend fun CommandSender.enable() {
+        GrwSettings.enabled = true
+        sendMessage("GitHub Release Watcher enabled")
     }
 
     @SubCommand
-    suspend fun CommandSender.stop() {
-        if (GrwData.grwJob == null) {
-            sendMessage("Not running!")
-        } else {
-            GrwData.grwJob!!.cancel()
-            GrwData.grwJob = null
-            sendMessage("Stopped running.")
-        }
+    suspend fun CommandSender.disable() {
+        GrwSettings.enabled = false
+        sendMessage("GitHub Release Watcher disabled")
     }
 
     // sub-sub-command (grass
     // https://github.com/mamoe/mirai-console/issues/237
-    @SubCommand("set bot")
-    suspend fun CommandSender.setBot(id: Long) {
-        if (id != 0L && Bot.getInstanceOrNull(id) == null) {
-            sendMessage("Bot not found")
-            return
-        }
-        GrwSettings.botId = id
-        sendMessage("Bot set")
-    }
-
     @SubCommand("set token")
     suspend fun CommandSender.setToken(token: String) {
         if (!(TOKEN_REGEX matches token)) {
@@ -69,16 +42,13 @@ object GrwCmd : CompositeCommand(
     @SubCommand("set interval")
     suspend fun CommandSender.setInterval(interval: Long) {
         GrwSettings.interval = interval
+        sendMessage("Set interval to ${interval}s")
     }
 
     @SubCommand("set timeout")
     suspend fun CommandSender.setTimeout(timeout: Long) {
         GrwSettings.timeout = timeout
-    }
-
-    @SubCommand("set autostart")
-    suspend fun CommandSender.setAutostart(autostart: Boolean) {
-        GrwSettings.autostart = autostart
+        sendMessage("Set timeout to ${timeout}ms")
     }
 }
 

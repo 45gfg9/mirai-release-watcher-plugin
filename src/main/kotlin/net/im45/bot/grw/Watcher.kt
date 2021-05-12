@@ -1,18 +1,17 @@
 package net.im45.bot.grw
 
-import com.google.auto.service.AutoService
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregisterAllCommands
-import net.mamoe.mirai.console.plugin.jvm.JvmPlugin
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 
-@AutoService(JvmPlugin::class)
 object Watcher : KotlinPlugin(
     JvmPluginDescription(
         "net.im45.bot.grw",
-        "1.0.0-dev01"
-    )
+        "1.0.0-dev01",
+    ) {
+        author("45gfg9")
+    }
 ) {
     override fun onEnable() {
         super.onEnable()
@@ -20,8 +19,10 @@ object Watcher : KotlinPlugin(
         GrwSettings.reload()
         GrwWatches.reload()
 
-        GrwData.tokenBuf = GrwSettings.token
+        Request.tokenBuf = GrwSettings.token
         GrwSettings.token = "unset"
+
+        Request.init()
 
         GrwCmd.register()
         WatchReleaseCmd.register()
@@ -32,6 +33,7 @@ object Watcher : KotlinPlugin(
     override fun onDisable() {
         super.onDisable()
 
+        Request.close()
         unregisterAllCommands(this)
     }
 }
