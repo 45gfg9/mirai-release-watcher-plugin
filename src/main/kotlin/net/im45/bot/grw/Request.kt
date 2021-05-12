@@ -38,6 +38,11 @@ object Request : Closeable {
         }
     }
 
+    private fun closeHttpClient() {
+        if (::httpClient.isInitialized)
+            httpClient.close()
+    }
+
     fun init() {
         if (tokenBuf == null && GrwSettings.token.length != 40) {
             Watcher.logger.warning("To use GRW, you need to set token first.")
@@ -58,8 +63,7 @@ object Request : Closeable {
     override fun close() {
         if (::job.isInitialized)
             job.cancel()
-        if (::httpClient.isInitialized)
-            httpClient.close()
+        closeHttpClient()
     }
 
     suspend fun verifyToken(token: String): Boolean {
@@ -82,9 +86,7 @@ object Request : Closeable {
                 tokenBuf = null
                 GrwSettings.token = token
 
-                // replace HttpClient
-                close()
-
+                closeHttpClient()
                 httpClient = this
 
                 return true
