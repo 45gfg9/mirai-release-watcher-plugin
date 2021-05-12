@@ -9,6 +9,7 @@ object Watcher : KotlinPlugin(
     JvmPluginDescription(
         "net.im45.bot.grw",
         "1.0.0-dev01",
+        "GitHub Release Watcher",
     ) {
         author("45gfg9")
     }

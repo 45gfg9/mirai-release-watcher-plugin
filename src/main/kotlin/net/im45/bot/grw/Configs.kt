@@ -8,6 +8,7 @@ internal typealias RMap<T> = Map<RepoId, Pair<T, Set<Long>>>
 internal typealias RMutableMap<T> = MutableMap<RepoId, Pair<T, Set<Long>>>
 
 object GrwSettings : AutoSavePluginConfig("settings") {
+    var botId: Long by value(0L)
     var enabled: Boolean by value(false)
     var token: String by value("unset")
     var interval: Long by value(30 * 1000L)

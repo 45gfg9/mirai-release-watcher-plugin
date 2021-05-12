@@ -26,6 +26,13 @@ object GrwCmd : CompositeCommand(
 
     // sub-sub-command (grass
     // https://github.com/mamoe/mirai-console/issues/237
+    @SubCommand("set bot")
+    suspend fun CommandSender.setBot(id: Long) {
+        GrwSettings.botId = id
+        sendMessage("Set bot to $id")
+    }
+
+
     @SubCommand("set token")
     suspend fun CommandSender.setToken(token: String) {
         if (!(TOKEN_REGEX matches token)) {
@@ -42,7 +49,7 @@ object GrwCmd : CompositeCommand(
     @SubCommand("set interval")
     suspend fun CommandSender.setInterval(interval: Long) {
         GrwSettings.interval = interval
-        sendMessage("Set interval to ${interval}s")
+        sendMessage("Set interval to ${interval}ms")
     }
 
     @SubCommand("set timeout")

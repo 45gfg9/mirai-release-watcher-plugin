@@ -19,5 +19,9 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("io.ktor:ktor-client-auth:$ktor")
-    implementation("io.ktor:ktor-client-cio:$ktor")
+//    implementation("io.ktor:ktor-client-cio:$ktor")
+}
+
+kotlin.target.compilations.all {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }

@@ -24,7 +24,7 @@ data class RepoId(
         private val SSH = Regex("^git@github\\.com:($IDENTIFIER)/($IDENTIFIER)\\.git$")
 
         @JvmStatic
-        private val HTTPS = Regex("^https://github\\.com/($IDENTIFIER)/($IDENTIFIER)(?:\\.git)?$")
+        private val HTTPS = Regex("^https?://github\\.com/($IDENTIFIER)/($IDENTIFIER)(?:\\.git)?$")
 
         @JvmStatic
         fun parse(url: String): RepoId {

@@ -13,19 +13,20 @@ internal data class Release(
     val author: Author,
     val releaseAssets: List<Asset>
 ) {
-    internal data class Author(val name: String, val login: String)
+    internal data class Author(val name: String, val login: String) {
+        override fun toString() = "$name ($login)"
+    }
+
     internal data class Asset(val name: String, val size: Long, val downloadUrl: String) {
         private companion object {
             private val SUFFIXES = charArrayOf('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'B', 'N', 'D')
         }
 
-        internal fun Long.toHumanReadableSize(): String {
-            require(this >= 0) { "Negative size" }
-
-            val scale = (log10(toDouble()) / 3).toInt()
+        internal fun sizeString(): String {
+            val scale = (log10(size.toDouble()) / 3).toInt()
 
             if (scale == 0) return "${this}B"
-            return String.format("%.2f", this / 1e3.pow(scale)) + SUFFIXES[scale - 1] + "B"
+            return String.format("%.2f", size / 1e3.pow(scale)) + SUFFIXES[scale - 1] + "B"
         }
     }
 }

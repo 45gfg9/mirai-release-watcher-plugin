@@ -5,7 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonIOException
 import com.google.gson.JsonParser
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.*
 import io.ktor.client.features.auth.*
 import io.ktor.client.request.*
@@ -13,12 +13,17 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import net.im45.bot.grw.github.RepoId
 import net.im45.bot.grw.ktor.bearer
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
+import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import java.io.Closeable
 
 object Request : Closeable {
     private const val FRAGMENT =
         "fragment latestRelease on Repository {releases(last: 1, orderBy: {field: CREATED_AT, direction: ASC}) {nodes {name url tagName createdAt updatedAt author {name login} releaseAssets(first: 100) {nodes {name size downloadUrl}}}}}"
     private const val TEMPLATE = "%s: repository(owner: \\\"%s\\\", name: \\\"%s\\\") { ...latestRelease } "
+
+    private val logger get() = Watcher.logger
 
     private val ENDPOINT = Url("https://api.github.com/graphql")
 
@@ -33,7 +38,7 @@ object Request : Closeable {
         require(repos.isNotEmpty()) { "Can't build query from an empty set" }
         return buildString {
             append("{")
-            repos.forEach { append(TEMPLATE.format(it.toLegalId(), it.name, it.owner)) }
+            repos.forEach { append(TEMPLATE.format(it.toLegalId(), it.owner, it.name)) }
             append("} ", FRAGMENT)
         }
     }
@@ -53,8 +58,7 @@ object Request : Closeable {
 
         job = ioScope.launch {
             while (true) {
-                if (GrwSettings.enabled)
-                    Request()
+                if (GrwSettings.enabled) runCatching { Request() }.onFailure { logger.error(it) }
                 delay(GrwSettings.interval)
             }
         }
@@ -71,7 +75,7 @@ object Request : Closeable {
             tokenBuf = token
         }
 
-        HttpClient(CIO) {
+        HttpClient(OkHttp) {
             install(Auth) {
                 bearer {
                     this.token = token
@@ -99,10 +103,12 @@ object Request : Closeable {
         }
     }
 
+    @OptIn(ConsoleExperimentalApi::class)
     suspend operator fun invoke() {
         assert(::job.isInitialized)
 
         if (GrwWatches.watches.isEmpty() || !::httpClient.isInitialized) return
+        logger.verbose("Starting a new request..")
 
         val sb = buildQueryString(GrwWatches.watches.keys)
 
@@ -117,14 +123,54 @@ object Request : Closeable {
             } else throw it
         }
 
-        jsonElement.handleError {
-            Watcher.logger.error("Error received from upstream")
-            Watcher.logger.error(it.toString())
-            Watcher.logger.debug(toString())
+        if (Parser.hasErrors(jsonElement))
+            jsonElement.handleError {
+                logger.error("Error received from upstream")
+                logger.error(it.toString())
+                logger.debug(toString())
+            }
+
+        if (!Parser.hasData(jsonElement)) {
+            logger.warning("Received object has no \"data\" value")
+            return
+        }
+
+        val repos = Parser.getRepositories(jsonElement, GrwWatches.watches.keys)
+        val (newReleases, nonExistence) = Parser.filterNewVer(GrwWatches.watches, repos)
+
+        logger.verbose(repos.toString())
+
+        // TODO handle nonexistent repos
+        newReleases.forEach { (n, p) ->
+            logger.verbose("Processing $n")
+            buildString {
+                p.first.run {
+                    appendLine("New release found for $n!")
+                    appendLine("URL: $url")
+                    appendLine("Name: $name")
+                    appendLine("Tag Name: $tagName")
+                    appendLine("Created At: $createdAt")
+                    appendLine("Updated At: $updatedAt")
+                    appendLine("Author: $author")
+                    appendLine("This release has ${releaseAssets.size} asset(s).")
+                    releaseAssets.forEach {
+                        appendLine("--------------------")
+                        appendLine("File name: ${it.name}")
+                        appendLine("Size: ${it.sizeString()}")
+                        appendLine("Download URL: ${it.downloadUrl}")
+                    }
+                }
+            }.trim().let { msg ->
+                Bot.getInstance(GrwSettings.botId).run {
+                    p.second.forEach {
+                        logger.verbose("Sending to $it")
+                        getContactOrNull(it)?.sendMessage(msg) ?: logger.warning("Contact $it is null")
+                    }
+                }
+            }
         }
     }
 
     private inline fun JsonElement.handleError(block: JsonElement.(JsonArray) -> Unit) =
-        block(asJsonObject.getAsJsonArray("error"))
-
+        block(asJsonObject.getAsJsonArray("errors"))
 }

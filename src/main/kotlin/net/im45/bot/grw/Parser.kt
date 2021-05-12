@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 internal object Parser {
 
     private val FMT = DateTimeFormatter.ISO_DATE_TIME
-    private val JsonElement.nullableAsString get() = if (isJsonNull) null.toString() else asString
+    private val JsonElement.nullableAsString get() = if (isJsonNull) "(null)" else asString
 
     fun hasErrors(jsonElement: JsonElement) = jsonElement.asJsonObject.has("errors")
 
